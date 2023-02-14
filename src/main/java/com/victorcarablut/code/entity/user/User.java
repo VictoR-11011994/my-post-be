@@ -1,5 +1,6 @@
-package com.victorcarablut.code.entity.account;
+package com.victorcarablut.code.entity.user;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -9,6 +10,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,12 +40,10 @@ public class User implements UserDetails {
 	private static final long serialVersionUID = 1L;
 
 	// @NotBlank: must not be null and must contain at least onenon-whitespace character.
-	// @JsonIgnore -> prevent to return the result visible.
+	// @JsonIgnore: prevent to return the result visible.
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "user_id", nullable = false)
-	@NotBlank
 	private Long id;
 
 	@Column(length = 100, nullable = false)
@@ -54,37 +55,30 @@ public class User implements UserDetails {
 	@NotBlank @Size(max = 100)
 	private String email;
 
-	@Column(unique = true, length = 20, nullable = false)
-	@NotBlank @Size(max = 20)
+	@Column(unique = true, length = 20)
+	@Size(max = 20)
 	private String username;
 
 	@JsonIgnore
+	@JsonProperty(access = Access.WRITE_ONLY)
 	@Column(length = 100, nullable = false)
 	@NotBlank @Size(max = 100)
 	private String password;
 
 	@Enumerated(EnumType.STRING)
-	@Column(length = 20, nullable = false)
-	@NotBlank @Size(max = 20)
+	@Column(length = 20)
 	private Role role;
 	
-	@Column(nullable = false)
-	@NotBlank
 	private boolean enabled;
 
 	@JsonIgnore
-	@Column(nullable = true)
-	@NotBlank @Size(max = 10)
 	private Integer verificationCode;
 
 	@Temporal(TemporalType.TIMESTAMP)
-	@Column(nullable = false)
-	@NotBlank
-	private Date registeredDate;
+	private LocalDateTime registeredDate;
 	
 	
-	
-
+	@JsonIgnore
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of(new SimpleGrantedAuthority(role.name()));
@@ -100,16 +94,19 @@ public class User implements UserDetails {
 		return username;
 	}
 
+	@JsonIgnore
 	@Override
 	public boolean isAccountNonExpired() {
 		return true;
 	}
 
+	@JsonIgnore
 	@Override
 	public boolean isAccountNonLocked() {
 		return true;
 	}
 
+	@JsonIgnore
 	@Override
 	public boolean isCredentialsNonExpired() {
 		return true;
