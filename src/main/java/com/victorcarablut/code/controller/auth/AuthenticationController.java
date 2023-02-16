@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.victorcarablut.code.exceptions.GenericException;
+import com.victorcarablut.code.exceptions.WrongEmailCodeException;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
 import com.victorcarablut.code.exceptions.EmptyInputException;
 import com.victorcarablut.code.config.email.EmailConfig;
@@ -30,68 +31,76 @@ import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.service.user.UserService;
 
-
 @CrossOrigin(origins = "${url.fe.cross.origin}")
 @RestController
 @RequestMapping("/api/account")
 public class AuthenticationController {
-	
+
 	@Autowired
 	private UserService userService;
-	
-	@ExceptionHandler({GenericException.class})
+
+	@ExceptionHandler({ GenericException.class })
 	public ResponseEntity<String> handleGenericError() {
 		String message = "Error";
 		return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 	}
-	
-	@ExceptionHandler({EmptyInputException.class})
+
+	@ExceptionHandler({ EmptyInputException.class })
 	public ResponseEntity<String> handleEmptyInput() {
 		String message = "Fill the required fields.";
 		return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 	}
-	
-	@ExceptionHandler({EmailAlreadyExistsException.class})
-	public ResponseEntity<String> handleEmailAlreadyExists() {
-		String message = "Email already exists.";
-		return new ResponseEntity<String>(message, HttpStatus.CONFLICT);
+
+	// The User with that email already exists
+	@ExceptionHandler({ EmailAlreadyExistsException.class })
+	public Map<String, Object> handleEmailAlreadyExists() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 3); // 3 - already exists
+		responseJSON.put("status_message", "Email already exists.");
+		return responseJSON;
 	}
-	
+
+	// The code received on email is not correct.
+	@ExceptionHandler({ WrongEmailCodeException.class })
+	public Map<String, Object> handleWrongEmailCode() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 2); // 2 - wrong/not correct/not valid
+		responseJSON.put("status_message", "The code is not correct.");
+		return responseJSON;
+	}
 
 //	@PostMapping("/register")
 //	public void user(@RequestBody UserDto userDto) {
 //		
 //		return userService.registerUser(userDto);
 //	}
-	
+
 	@PostMapping("/user/register")
 	public ResponseEntity<String> registerUser(@RequestBody UserDto userDto) {
-		 userService.registerUser(userDto);
-		 return new ResponseEntity<String>("User registered", HttpStatus.OK);
+		userService.registerUser(userDto);
+		return new ResponseEntity<String>("User registered", HttpStatus.OK);
 	}
-	
+
 //	@PostMapping("/email/code")
 //	public ResponseEntity<String> sendEmailCode(@RequestBody LinkedHashMap<String, String> data) {
 //		userService.generateEmailCode(null, data.get("email"));
 //		return new ResponseEntity<String>("Code sended on email", HttpStatus.OK);
 //	}
-	
+
 	@PostMapping("/email/code")
 	public ResponseEntity<String> sendEmailCode(@RequestBody LinkedHashMap<String, String> data) {
 		userService.generateEmailCode(data.get("email"));
 		return new ResponseEntity<String>("Code sended on email (no-reply)", HttpStatus.OK);
 	}
-	
-	
+
 	@Autowired
 	@Qualifier("javaMailSenderPrimary")
 	private JavaMailSender javaMailSender2;
-	
-	
+
 	// test
 	@PostMapping("/email/code/primary")
 	public ResponseEntity<String> sendEmailCodePrimary(@RequestBody LinkedHashMap<String, String> data) {
-		//userService.generateEmailCode(data.get("email"));
+		// userService.generateEmailCode(data.get("email"));
 		try {
 			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 			simpleMailMessage.setFrom("my-post@code.victorcarablut.com");
@@ -107,56 +116,55 @@ public class AuthenticationController {
 			throw new GenericException();
 
 		}
-     
+
 		return new ResponseEntity<String>("Code sended on email (primary)", HttpStatus.OK);
 	}
-	
-	
+
 	@PostMapping("/email/code/verify")
 	public ResponseEntity<String> verifyEmailCode(@RequestBody LinkedHashMap<String, String> data) {
 		userService.verifyEmailCode(data.get("email"), data.get("code"));
 		return new ResponseEntity<String>("Code verified!", HttpStatus.OK);
 	}
-	
+
 //	@PostMapping("/password/update")
 //	public ResponseEntity<String> updateUserPassword(@RequestBody UserDto userDto) {
 //		 userService.resetUserPassword(userDto);
 //		 return new ResponseEntity<String>(HttpStatus.OK);
 //	}
-	
+
 	// 1) generate & send code on email
 	// 2) enter a new password
 	@PostMapping("/user/password/recover")
 	public ResponseEntity<String> recoverUserPassword(@RequestBody LinkedHashMap<String, String> data) {
-		 userService.recoverUserPassword(data.get("email"), data.get("code"), data.get("password"));
-		 return new ResponseEntity<String>(HttpStatus.OK);
+		userService.recoverUserPassword(data.get("email"), data.get("code"), data.get("password"));
+		return new ResponseEntity<String>(HttpStatus.OK);
 	}
-	
+
 	// auth
 	@PostMapping("/user/login")
 	public ResponseEntity<Map<Object, String>> authenticate(@RequestBody UserDto userDto) {
 		return ResponseEntity.ok(userService.authenticate(userDto));
 	}
-	
+
 	@GetMapping("/user/details")
 	public Optional<User> getUsername(Authentication authentication) {
 
-		//System.out.println(authentication.getName());
-		//System.out.println(authentication.getAuthorities());
-		
-		//final Optional<User> fullName = userService.findUserDetails(user.getFullName().toString());
-		//final String username = authentication.getName();
-		//final String email = "";
-		//final String role = authentication.getAuthorities();
-		
-		//TokenDto jwtToken = new TokenDto("token", token);
+		// System.out.println(authentication.getName());
+		// System.out.println(authentication.getAuthorities());
 
+		// final Optional<User> fullName =
+		// userService.findUserDetails(user.getFullName().toString());
+		// final String username = authentication.getName();
+		// final String email = "";
+		// final String role = authentication.getAuthorities();
 
-		//Map<Object, String> tokenJSON = new LinkedHashMap<>();
+		// TokenDto jwtToken = new TokenDto("token", token);
 
-	    //tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
-		
+		// Map<Object, String> tokenJSON = new LinkedHashMap<>();
+
+		// tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
+
 		return userService.findUserDetails(authentication.getName());
 	}
-	
+
 }

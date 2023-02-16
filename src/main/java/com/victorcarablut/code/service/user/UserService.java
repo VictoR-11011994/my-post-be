@@ -28,6 +28,7 @@ import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
 import com.victorcarablut.code.exceptions.EmptyInputException;
 import com.victorcarablut.code.exceptions.GenericException;
+import com.victorcarablut.code.exceptions.WrongEmailCodeException;
 import com.victorcarablut.code.repository.user.UserRepository;
 import com.victorcarablut.code.security.jwt.JwtService;
 import com.victorcarablut.code.service.email.EmailService;
@@ -196,7 +197,7 @@ public class UserService {
 
 	}
 
-	// find code and send it on email
+	// find email and send code on email
 	public void sendEmailCode(String email) {
 
 		try {
@@ -271,7 +272,7 @@ public class UserService {
 			} catch (Exception e) {
 				// TODO: handle exception
 				statusVerifyEmailCode = false;
-				throw new GenericException();
+				throw new WrongEmailCodeException();
 			}
 		}
 		return statusVerifyEmailCode;
