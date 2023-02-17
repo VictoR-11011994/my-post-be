@@ -23,8 +23,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.victorcarablut.code.exceptions.GenericException;
-import com.victorcarablut.code.exceptions.WrongEmailCodeException;
+import com.victorcarablut.code.exceptions.EmailWrongCodeException;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
+import com.victorcarablut.code.exceptions.EmailNotCorrectException;
+import com.victorcarablut.code.exceptions.EmailNotExistsException;
+import com.victorcarablut.code.exceptions.EmailSendErrorException;
 import com.victorcarablut.code.exceptions.EmptyInputException;
 import com.victorcarablut.code.config.email.EmailConfig;
 import com.victorcarablut.code.dto.UserDto;
@@ -55,17 +58,44 @@ public class AuthenticationController {
 	@ExceptionHandler({ EmailAlreadyExistsException.class })
 	public Map<String, Object> handleEmailAlreadyExists() {
 		Map<String, Object> responseJSON = new LinkedHashMap<>();
-		responseJSON.put("status_code", 3); // 3 - already exists
+		responseJSON.put("status_code", 3);
 		responseJSON.put("status_message", "Email already exists.");
 		return responseJSON;
 	}
 
+	// No Email found on DB
+	@ExceptionHandler({ EmailNotExistsException.class })
+	public Map<String, Object> handleEmailNotExists() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 4);
+		responseJSON.put("status_message", "Email does not exists.");
+		return responseJSON;
+	}
+
+	// Invalid email format (must contain: @ .)
+	@ExceptionHandler({ EmailNotCorrectException.class })
+	public Map<String, Object> handleEmailNotCorrect() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 2);
+		responseJSON.put("status_message", "Invalid email format.");
+		return responseJSON;
+	}
+
 	// The code received on email is not correct.
-	@ExceptionHandler({ WrongEmailCodeException.class })
+	@ExceptionHandler({ EmailWrongCodeException.class })
 	public Map<String, Object> handleWrongEmailCode() {
 		Map<String, Object> responseJSON = new LinkedHashMap<>();
-		responseJSON.put("status_code", 2); // 2 - wrong/not correct/not valid
+		responseJSON.put("status_code", 2);
 		responseJSON.put("status_message", "The code is not correct.");
+		return responseJSON;
+	}
+
+	// Error while sending email
+	@ExceptionHandler({ EmailSendErrorException.class })
+	public Map<String, Object> handleEmailSendError() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 5);
+		responseJSON.put("status_message", "Error while sending email, try again!");
 		return responseJSON;
 	}
 
@@ -87,10 +117,12 @@ public class AuthenticationController {
 //		return new ResponseEntity<String>("Code sended on email", HttpStatus.OK);
 //	}
 
-	@PostMapping("/email/code")
+	@PostMapping("/email/code/send")
 	public ResponseEntity<String> sendEmailCode(@RequestBody LinkedHashMap<String, String> data) {
-		userService.generateEmailCode(data.get("email"));
-		return new ResponseEntity<String>("Code sended on email (no-reply)", HttpStatus.OK);
+		final String email = data.get("email");
+		userService.generateEmailCode(email);
+		return new ResponseEntity<String>("An email with a verification code was sent to: " + email.substring(0, 5)
+				+ "**********" + " | (no-reply)", HttpStatus.OK);
 	}
 
 	@Autowired

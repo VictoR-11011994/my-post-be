@@ -26,9 +26,12 @@ import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.Role;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
+import com.victorcarablut.code.exceptions.EmailNotCorrectException;
+import com.victorcarablut.code.exceptions.EmailNotExistsException;
+import com.victorcarablut.code.exceptions.EmailSendErrorException;
 import com.victorcarablut.code.exceptions.EmptyInputException;
 import com.victorcarablut.code.exceptions.GenericException;
-import com.victorcarablut.code.exceptions.WrongEmailCodeException;
+import com.victorcarablut.code.exceptions.EmailWrongCodeException;
 import com.victorcarablut.code.repository.user.UserRepository;
 import com.victorcarablut.code.security.jwt.JwtService;
 import com.victorcarablut.code.service.email.EmailService;
@@ -158,12 +161,15 @@ public class UserService {
 		Boolean emailMatchControl = userEmail.contains("@") && userEmail.contains(".");
 		Boolean emailFromFindUserByEmail = findUserByEmail(userEmail).isEmpty();
 
-		if (userEmail == null || userEmail.isEmpty() || !emailMatchControl) {
+		if (userEmail == null || userEmail.isEmpty()) {
 			throw new EmptyInputException();
 
+		} else if(!emailMatchControl) {
+			throw new EmailNotCorrectException();
+			
 		} else if (emailFromFindUserByEmail == true) {
 			// User with that email does not exists...
-			throw new GenericException();
+			throw new EmailNotExistsException();
 
 		} else {
 
@@ -186,7 +192,7 @@ public class UserService {
 					sendEmailCode(userEmail);
 				} catch (Exception e) {
 					// TODO: handle exception
-					throw new GenericException();
+					throw new EmailSendErrorException();
 				}
 
 			} catch (Exception e) {
@@ -226,7 +232,7 @@ public class UserService {
 
 		} catch (Exception e) {
 			// TODO: handle exception
-			throw new GenericException();
+			throw new EmailNotExistsException();
 		}
 
 	}
@@ -272,7 +278,7 @@ public class UserService {
 			} catch (Exception e) {
 				// TODO: handle exception
 				statusVerifyEmailCode = false;
-				throw new WrongEmailCodeException();
+				throw new EmailWrongCodeException();
 			}
 		}
 		return statusVerifyEmailCode;
