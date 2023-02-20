@@ -27,9 +27,9 @@ import com.victorcarablut.code.exceptions.EmailWrongCodeException;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
 import com.victorcarablut.code.exceptions.EmailNotCorrectException;
 import com.victorcarablut.code.exceptions.EmailNotExistsException;
+import com.victorcarablut.code.exceptions.EmailNotVerifiedException;
 import com.victorcarablut.code.exceptions.EmailSendErrorException;
 import com.victorcarablut.code.exceptions.EmptyInputException;
-import com.victorcarablut.code.config.email.EmailConfig;
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.service.user.UserService;
@@ -63,7 +63,7 @@ public class AuthenticationController {
 		return responseJSON;
 	}
 
-	// No Email found on DB
+	// Email not found on DB
 	@ExceptionHandler({ EmailNotExistsException.class })
 	public Map<String, Object> handleEmailNotExists() {
 		Map<String, Object> responseJSON = new LinkedHashMap<>();
@@ -98,6 +98,17 @@ public class AuthenticationController {
 		responseJSON.put("status_message", "Error while sending email, try again!");
 		return responseJSON;
 	}
+	
+	// Email (User) not verified
+		@ExceptionHandler({ EmailNotVerifiedException.class })
+		public Map<String, Object> handleEmailNotVerified() {
+			Map<String, Object> responseJSON = new LinkedHashMap<>();
+			responseJSON.put("status_code", 6);
+			responseJSON.put("status_message", "Email not verified!");
+			return responseJSON;
+		}
+		
+
 
 //	@PostMapping("/register")
 //	public void user(@RequestBody UserDto userDto) {
@@ -175,7 +186,7 @@ public class AuthenticationController {
 	// auth
 	@PostMapping("/user/login")
 	public ResponseEntity<Map<Object, String>> authenticate(@RequestBody UserDto userDto) {
-		return ResponseEntity.ok(userService.authenticate(userDto));
+		return ResponseEntity.ok(userService.loginUser(userDto));
 	}
 
 	@GetMapping("/user/details")
