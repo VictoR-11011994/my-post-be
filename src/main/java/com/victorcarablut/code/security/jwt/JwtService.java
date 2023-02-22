@@ -21,6 +21,9 @@ public class JwtService {
 
 	@Value("${spring.security.jwt.secret-key}")
 	private String TOKEN_SECRET_KEY;
+	
+	@Value("${spring.security.jwt.expiration}")
+	private int TOKEN_EXPIRATION;
 
 	public String extractUsername(String token) {
 		return extractClaims(token, Claims::getSubject);
@@ -48,9 +51,9 @@ public class JwtService {
 	public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
 		return Jwts.builder().setClaims(extraClaims).setSubject(userDetails.getUsername())
 				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
+				.setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRATION))
 				.signWith(getSignInKey(), SignatureAlgorithm.HS256).compact();
-		// ... + 1000 * 60 * 30 : token expires in 30 minutes
+				// ... + 1000 * 60 * 30 : token expires in 30 minutes
 	}
 
 	public boolean isTokenValid(String token, UserDetails userDetails) {
