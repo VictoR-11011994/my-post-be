@@ -23,7 +23,7 @@ public class JwtService {
 	private String TOKEN_SECRET_KEY;
 	
 	@Value("${spring.security.jwt.expiration}")
-	private int TOKEN_EXPIRATION;
+	private Long TOKEN_EXPIRATION;
 
 	public String extractUsername(String token) {
 		return extractClaims(token, Claims::getSubject);
