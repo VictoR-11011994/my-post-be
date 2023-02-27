@@ -272,7 +272,8 @@ public class UserService {
 					User user = userRepository.findByEmail(email);
 					// clear code
 					user.setVerificationCode(null);
-					
+					user.setEnabled(true);
+				
 					try {
 						userRepository.save(user);
 						returnStatus = true;
