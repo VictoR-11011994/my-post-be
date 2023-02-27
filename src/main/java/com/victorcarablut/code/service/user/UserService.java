@@ -8,14 +8,15 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
+
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,17 +26,20 @@ import com.victorcarablut.code.dto.TokenDto;
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.Role;
 import com.victorcarablut.code.entity.user.User;
+
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
-import com.victorcarablut.code.exceptions.EmailNotCorrectException;
 import com.victorcarablut.code.exceptions.EmailNotExistsException;
 import com.victorcarablut.code.exceptions.EmailNotVerifiedException;
-import com.victorcarablut.code.exceptions.EmailSendErrorException;
-import com.victorcarablut.code.exceptions.EmptyInputException;
+import com.victorcarablut.code.exceptions.ErrorSendEmailException;
+import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 import com.victorcarablut.code.exceptions.GenericException;
+import com.victorcarablut.code.exceptions.InvalidEmailException;
+import com.victorcarablut.code.exceptions.PasswordNotMatchException;
+import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
 import com.victorcarablut.code.exceptions.EmailWrongCodeException;
+
 import com.victorcarablut.code.repository.user.UserRepository;
 import com.victorcarablut.code.security.jwt.JwtService;
-import com.victorcarablut.code.service.email.EmailService;
 
 @Service
 public class UserService {
@@ -71,301 +75,305 @@ public class UserService {
 		return userRepository.findByEmailAndReturnOnlyEmail(email);
 	}
 
+	// find only email true/false
+	public boolean existsUserByEmail(String email) {
+		return userRepository.existsUserByEmail(email);
+	}
+
 	// find user details
 	public Optional<User> findUserDetails(String username) {
 		return userRepository.findByUsername(username);
 	}
 
+
+	// check email input validity
+	public boolean emailInputIsValid(String email) {
+
+		final Boolean emailFormatControl = email.contains("@") && email.contains(".");
+
+		if (email == null || email.contains(" ") || email.length() == 0 || email.length() > 100 || email.isEmpty()
+				|| email.isBlank() || !emailFormatControl) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+
 	// register new user
 	public void registerUser(UserDto userDto) {
 
-		String userEmail = null;
-		try {
-			userEmail = userDto.getEmail().trim();
-		} catch (Exception e) {
-			System.out.println(e);
-			throw new GenericException();
-		}
+		if (emailInputIsValid(userDto.getEmail())) {
 
-		User user = new User();
-		user.setFullName(userDto.getFullName());
-		user.setEmail(userEmail);
+			if (existsUserByEmail(userDto.getEmail())) {
+				throw new EmailAlreadyExistsException();
+			} else {
 
-		// final String encodedPassword = passwordEncoder.encode(userDto.getPassword());
-		user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+				User user = new User();
+				user.setFullName(userDto.getFullName());
+				user.setEmail(userDto.getEmail());
 
-		user.setRegisteredDate(LocalDateTime.now());
-
-		// UUID uuid = UUID.randomUUID();
-		DateFormat dateFormat = new SimpleDateFormat("ddMMHHmmssmm");
-		try {
-			user.setUsername(user.getFullName().toLowerCase() + "-" + dateFormat.format(new Date()));
-		} catch (Exception e) {
-			System.out.println(e);
-			throw new GenericException();
-		}
-
-		user.setRole(Role.USER);
-		user.setEnabled(false);
-
-		// Map<String, Object> email = userRepository.findByEmail(user.getEmail());
-		// email.forEach((key, value) -> System.out.println(key + ":" + value));
-
-		// System.out.println("User Email: " + user.getEmail());
-		// System.out.println("User Email exists in DB?: " + email.isEmpty());
-
-		// email input control
-		Boolean emailMatchControl = userEmail.contains("@") && userEmail.contains(".");
-
-		if (userEmail == null || userEmail.isEmpty()){
-			throw new EmptyInputException();
-
-		} else if (!emailMatchControl) {
-			throw new EmailNotCorrectException();
-			
-		} else if (findUserByEmail(userEmail).isEmpty()) {
-			// User with that email does not exists yet...
-			try {
-				// try to save the user...
-				userRepository.save(user);
-
+				// first time: generate automatic username (max: 20 characters)
 				try {
-					// ...then try to send generated code and send it on email...
-					// generateEmailCode(user.getId().toString(), user.getEmail());
-					generateEmailCode(user.getEmail());
+					String uuid = UUID.randomUUID().toString().replace("-", "");
+					DateFormat dateFormat = new SimpleDateFormat("ddMMHHmmssmm");
+					user.setUsername(uuid.substring(0, 7).toLowerCase() + "-" + dateFormat.format(new Date())); // max
+																												// 20
+																												// characters
 				} catch (Exception e) {
-					System.out.println(e);
 					throw new GenericException();
 				}
 
-			} catch (Exception e) {
-				// TODO: handle exception
-				System.out.println(e);
-				throw new GenericException();
+				user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+				user.setRegisteredDate(LocalDateTime.now());
+				user.setRole(Role.USER); // first time: default role is USER
+				user.setEnabled(false); // first time: account is not enabled (necessary verification code from email)
+
+				try {
+					userRepository.save(user);
+				} catch (Exception e) {
+					throw new ErrorSaveDataToDatabaseException();
+				}
+
+				// ... after (registerUser) on front-end call a separate API to generate code
+				// and send it on email (necessary to verify and enable account)
+	
 			}
 
 		} else {
-			// User with that email already exists...
-			throw new EmailAlreadyExistsException();
+			throw new InvalidEmailException();
 		}
 
 	}
 
-	// login user and generate token
+	// login/auth user and generate token
 	public Map<Object, String> loginUser(UserDto userDto) {
-
-		String userEmail = null;
-		try {
-			userEmail = userDto.getEmail().trim();
-		} catch (Exception e) {
-			throw new GenericException();
-		}
-
-		// email input control
-		Boolean emailMatchControl = userEmail.contains("@") && userEmail.contains(".");
-		Boolean emailFromFindUserByEmail = findUserByEmail(userEmail).isEmpty();
-
-		if (userEmail == null || userEmail.isEmpty()) {
-			throw new EmptyInputException();
-
-		} else if (!emailMatchControl) {
-			throw new EmailNotCorrectException();
-
-		} else if (emailFromFindUserByEmail == true) {
-			// User with that email does not exists...
-			throw new EmailNotExistsException();
-
-		} else {
-
-			try {
-
-				// get email from input and find related username
-				User user = userRepository.findByEmail(userEmail);
-
-				// System.out.println("usernameFromEmail: " + user.getUsername());
-
-				if (user.isEnabled() == true) {
-					userDto.setUsername(user.getUsername());
-				} else {
-
-					throw new EmailNotVerifiedException();
-				}
-
-			} catch (Exception e) {
-				throw new EmailNotVerifiedException();
-			}
-		}
-
-		authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
-
-		final String token = jwtService
-				.generateToken(userRepository.findByUsername(userDto.getUsername()).orElseThrow());
-		TokenDto jwtToken = new TokenDto("token", token);
 
 		Map<Object, String> tokenJSON = new LinkedHashMap<>();
 
-		tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
+		if (emailInputIsValid(userDto.getEmail())) {
+
+			if (existsUserByEmail(userDto.getEmail())) {
+
+				User user = userRepository.findByEmail(userDto.getEmail());
+
+				if (user.isEnabled()) {
+					
+					if(verifyAuth(user.getUsername(), userDto.getPassword())) {
+						
+						final String token = jwtService
+								.generateToken(userRepository.findByUsername(userDto.getUsername()).orElseThrow());
+						TokenDto jwtToken = new TokenDto("token", token);
+
+						tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
+						
+					} else {
+						throw new WrongEmailOrPasswordException();
+					}
+
+				} else {
+					throw new EmailNotVerifiedException();
+				}
+
+			} else {
+				throw new EmailNotExistsException();
+			}
+
+		} else {
+			throw new InvalidEmailException();
+		}
 
 		return tokenJSON;
 	}
 
-	// generate code and save to db
-	public void generateEmailCode(String email) {
+	public void generateCode(String email) {
 
-		String userEmail = null;
 		try {
-			userEmail = email.trim();
+
+			User user = userRepository.findByEmail(email);
+
+			// generate 6 random numbers
+			SecureRandom secureRandomNumbers = SecureRandom.getInstance("SHA1PRNG");
+			final int randomNumbers = secureRandomNumbers.nextInt(900000) + 100000;
+			user.setVerificationCode(randomNumbers);
+
+			userRepository.save(user);
+
 		} catch (Exception e) {
-			throw new GenericException();
+			throw new ErrorSaveDataToDatabaseException();
 		}
+	}
 
-		// email input control
-		Boolean emailMatchControl = userEmail.contains("@") && userEmail.contains(".");
-		Boolean emailFromFindUserByEmail = findUserByEmail(userEmail).isEmpty();
+	public void sendEmailCodeNoReply(String email) {
 
-		if (userEmail == null || userEmail.isEmpty()) {
-			throw new EmptyInputException();
+		if (emailInputIsValid(email)) {
 
-		} else if (!emailMatchControl) {
-			throw new EmailNotCorrectException();
+			if (existsUserByEmail(email)) {
 
-		} else if (emailFromFindUserByEmail == true) {
-			// User with that email does not exists...
-			throw new EmailNotExistsException();
+				// execute external method
+				generateCode(email);
 
-		} else {
-
-			try {
 				User user = userRepository.findByEmail(email);
 
-				// Long userId = Long.valueOf(id);
+				// extra control of generated code available on db
+				if (user.getVerificationCode() == 0) {
+					throw new GenericException();
+				} else {
+					try {
+						SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+						simpleMailMessage.setFrom(senderEmailNoReply);
+						simpleMailMessage.setTo(user.getEmail());
+						simpleMailMessage.setSubject("Verification Code (no-reply)");
+						simpleMailMessage.setText(user.getVerificationCode().toString());
 
-				// generate 6 random numbers
-				SecureRandom secureRandomNumbers = SecureRandom.getInstance("SHA1PRNG");
-				int randomNumbers = secureRandomNumbers.nextInt(900000) + 100000;
+						javaMailSenderNoReply.send(simpleMailMessage);
 
-				user.setVerificationCode(randomNumbers);
-
-				userRepository.save(user);
-
-				// after code is saved to db try to send it on email
-				try {
-					sendEmailCode(userEmail);
-				} catch (Exception e) {
-					// TODO: handle exception
-					throw new EmailSendErrorException();
+					} catch (Exception e) {
+						throw new ErrorSendEmailException();
+					}
 				}
 
-			} catch (Exception e) {
-				// TODO: handle exception
-				throw new GenericException();
+			} else {
+				throw new EmailNotExistsException();
 			}
+
+		} else {
+			throw new InvalidEmailException();
 		}
 
 	}
-
-	// find email and send code on email
-	public void sendEmailCode(String email) {
-
+	
+	public void enableUserAccount(UserDto userDto) {
 		try {
-			User user = userRepository.findByEmail(email);
-			// Integer code = user.getVerificationCode();
-
-			// send email
-			// System.out.println("Email sended" + code);
-			// emailService.sendEmail(user.getEmail(), "Password Recover Code", "code: " +
-			// user.getVerificationCode());
-
-			try {
-				SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-				simpleMailMessage.setFrom(senderEmailNoReply);
-				simpleMailMessage.setTo(user.getEmail());
-				simpleMailMessage.setSubject("Verify Email Code (no-reply)");
-				simpleMailMessage.setText(user.getVerificationCode().toString());
-
-				javaMailSenderNoReply.send(simpleMailMessage);
-				System.out.println("Email sended (no-reply)");
-
-			} catch (Exception e) {
-				System.out.println("Error sending Email (no-reply)");
-				throw new GenericException();
-
-			}
-
+			User user = userRepository.findByEmail(userDto.getEmail());
+			user.setEnabled(true);
+			userRepository.save(user);
 		} catch (Exception e) {
-			// TODO: handle exception
-			throw new EmailNotExistsException();
+			throw new ErrorSaveDataToDatabaseException();
 		}
-
 	}
+
 
 	// verify code received on email
 	public boolean verifyEmailCode(String email, String code) {
+		
+		boolean returnStatus = false;
 
-		boolean statusVerifyEmailCode = false;
+		if (emailInputIsValid(email)) {
 
-		String userEmail = null;
-		try {
-			userEmail = email.trim();
-		} catch (Exception e) {
-			throw new GenericException();
-		}
+			if (existsUserByEmail(email)) {
+				
+				final Integer emailCode = Integer.valueOf(code);
 
-		// email input control
-		Boolean emailMatchControl = userEmail.contains("@") && userEmail.contains(".");
-		Boolean emailFromFindUserByEmail = findUserByEmail(userEmail).isEmpty();
+				final boolean existsUserAndCode = userRepository.existsUserByEmailAndVerificationCode(email, emailCode);
+			
+				if(existsUserAndCode) {
+					
+					User user = userRepository.findByEmail(email);
+					// clear code
+					user.setVerificationCode(null);
+					
+					try {
+						userRepository.save(user);
+						returnStatus = true;
+					} catch (Exception e) {
+						returnStatus = false;
+						throw new ErrorSaveDataToDatabaseException();
+					}
+					
+				} else {
+					returnStatus = false;
+					throw new EmailWrongCodeException();
+				}
 
-		if (userEmail == null || userEmail.isEmpty() || !emailMatchControl) {
-			throw new EmptyInputException();
-
-		} else if (emailFromFindUserByEmail == true) {
-			// User with that email does not exists...
-			throw new EmailNotExistsException();
+			} else {
+				returnStatus = false;
+				throw new EmailNotExistsException();
+			}
 
 		} else {
-
-			try {
-				Integer emailCode = Integer.valueOf(code);
-				User user = userRepository.findByEmailAndVerificationCode(email, emailCode);
-
-				// clear code and enable user account
-				user.setVerificationCode(null);
-				user.setEnabled(true);
-
-				userRepository.save(user);
-
-				statusVerifyEmailCode = true;
-
-			} catch (Exception e) {
-				// TODO: handle exception
-				statusVerifyEmailCode = false;
-				throw new EmailWrongCodeException();
-			}
+			returnStatus = false;
+			throw new InvalidEmailException();
 		}
-		return statusVerifyEmailCode;
+		
+		return returnStatus;
 
+	}
+	
+	public boolean verifyAuth(String username, String password) {
+		try {
+			authenticationManager
+			.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	// update existing password
+	public void updateUserPassword(String email, String oldPassword, String newPassword) {
+		
+		if (emailInputIsValid(email)) {
+			
+			if (existsUserByEmail(email)) {
+				
+				User user = userRepository.findByEmail(email);
+				
+				if(verifyAuth(user.getUsername(), oldPassword)) {
+					
+					user.setPassword(passwordEncoder.encode(newPassword));
+					
+					try {
+						userRepository.save(user);
+					} catch (Exception e) {
+						throw new ErrorSaveDataToDatabaseException();
+					}
+					
+				} else {
+					throw new PasswordNotMatchException();
+				}
+				
+			} else {
+				throw new EmailNotExistsException();
+			}
+			
+		} else {
+			throw new InvalidEmailException();
+		}
+		
 	}
 
 	// recover password if forget
 	public void recoverUserPassword(String email, String code, String password) {
-		// TODO Auto-generated method stub
-
-		// 1) generate & send code on email
-		// 2) verify code
-		if (verifyEmailCode(email, code) == true) {
-
-			try {
-				User user = userRepository.findByEmail(email);
-				user.setPassword(passwordEncoder.encode(password));
-				userRepository.save(user);
-
-			} catch (Exception e) {
-				throw new GenericException();
+		
+		if (emailInputIsValid(email)) {
+			
+			if (existsUserByEmail(email)) {
+				
+				// first send email code no-reply
+				
+				if(verifyEmailCode(email, code)) {
+					
+					User user = userRepository.findByEmail(email);
+					user.setPassword(passwordEncoder.encode(password));
+					
+					try {
+						userRepository.save(user);
+					} catch (Exception e) {
+						throw new ErrorSaveDataToDatabaseException();
+					}
+					
+				} else {
+					throw new EmailWrongCodeException();
+				}
+					
+				
+			} else {
+				throw new EmailNotExistsException();
 			}
-
+			
 		} else {
-			throw new GenericException();
+			throw new InvalidEmailException();
 		}
 
 	}

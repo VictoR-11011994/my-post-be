@@ -1,15 +1,15 @@
 package com.victorcarablut.code.controller.auth;
 
 import java.util.LinkedHashMap;
-import java.util.List;
+
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -23,13 +23,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.victorcarablut.code.exceptions.GenericException;
+import com.victorcarablut.code.exceptions.InvalidEmailException;
+import com.victorcarablut.code.exceptions.PasswordNotMatchException;
+import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
 import com.victorcarablut.code.exceptions.EmailWrongCodeException;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
-import com.victorcarablut.code.exceptions.EmailNotCorrectException;
+
 import com.victorcarablut.code.exceptions.EmailNotExistsException;
 import com.victorcarablut.code.exceptions.EmailNotVerifiedException;
-import com.victorcarablut.code.exceptions.EmailSendErrorException;
-import com.victorcarablut.code.exceptions.EmptyInputException;
+import com.victorcarablut.code.exceptions.ErrorSendEmailException;
+
+import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
+
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.service.user.UserService;
@@ -42,96 +47,98 @@ public class AuthenticationController {
 	@Autowired
 	private UserService userService;
 
+	// Custom exceptions response
+
 	@ExceptionHandler({ GenericException.class })
 	public ResponseEntity<String> handleGenericError() {
-		String message = "Error";
+		final String message = "Error";
 		return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 	}
 
-	@ExceptionHandler({ EmptyInputException.class })
-	public ResponseEntity<String> handleEmptyInput() {
-		String message = "Fill the required fields.";
-		return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
-	}
-
-	// The User with that email already exists
-	@ExceptionHandler({ EmailAlreadyExistsException.class })
-	public Map<String, Object> handleEmailAlreadyExists() {
+	@ExceptionHandler({ ErrorSaveDataToDatabaseException.class })
+	public Map<String, Object> handleErrorSaveDataToDatabase() {
 		Map<String, Object> responseJSON = new LinkedHashMap<>();
-		responseJSON.put("status_code", 3);
-		responseJSON.put("status_message", "Email already exists.");
+		responseJSON.put("status_code", 1);
+		responseJSON.put("status_message", "Error save data to DB");
 		return responseJSON;
 	}
 
-	// Email not found on DB
-	@ExceptionHandler({ EmailNotExistsException.class })
-	public Map<String, Object> handleEmailNotExists() {
-		Map<String, Object> responseJSON = new LinkedHashMap<>();
-		responseJSON.put("status_code", 4);
-		responseJSON.put("status_message", "Email does not exists.");
-		return responseJSON;
-	}
-
-	// Invalid email format (must contain: @ .)
-	@ExceptionHandler({ EmailNotCorrectException.class })
-	public Map<String, Object> handleEmailNotCorrect() {
+	@ExceptionHandler({ InvalidEmailException.class })
+	public Map<String, Object> handleInvalidEmail() {
 		Map<String, Object> responseJSON = new LinkedHashMap<>();
 		responseJSON.put("status_code", 2);
 		responseJSON.put("status_message", "Invalid email format.");
 		return responseJSON;
 	}
 
-	// The code received on email is not correct.
+	@ExceptionHandler({ EmailAlreadyExistsException.class })
+	public Map<String, Object> handleEmailAlreadyExists() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 3);
+		responseJSON.put("status_message", "Account with that email already exists.");
+		return responseJSON;
+	}
+
+	@ExceptionHandler({ EmailNotExistsException.class })
+	public Map<String, Object> handleEmailNotExists() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 4);
+		responseJSON.put("status_message", "Account with that email doesn't exist.");
+		return responseJSON;
+	}
+
 	@ExceptionHandler({ EmailWrongCodeException.class })
 	public Map<String, Object> handleWrongEmailCode() {
 		Map<String, Object> responseJSON = new LinkedHashMap<>();
-		responseJSON.put("status_code", 2);
-		responseJSON.put("status_message", "The code is not correct.");
+		responseJSON.put("status_code", 5);
+		responseJSON.put("status_message", "Wrong verification code.");
 		return responseJSON;
 	}
 
-	// Error while sending email
-	@ExceptionHandler({ EmailSendErrorException.class })
-	public Map<String, Object> handleEmailSendError() {
+	@ExceptionHandler({ EmailNotVerifiedException.class })
+	public Map<String, Object> handleEmailNotVerified() {
 		Map<String, Object> responseJSON = new LinkedHashMap<>();
-		responseJSON.put("status_code", 5);
+		responseJSON.put("status_code", 6);
+		responseJSON.put("status_message", "Email not verified yet!");
+		return responseJSON;
+	}
+
+	@ExceptionHandler({ ErrorSendEmailException.class })
+	public Map<String, Object> handleErrorSendEmail() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 7);
 		responseJSON.put("status_message", "Error while sending email, try again!");
 		return responseJSON;
 	}
-	
-	// Email (User) not verified
-		@ExceptionHandler({ EmailNotVerifiedException.class })
-		public Map<String, Object> handleEmailNotVerified() {
-			Map<String, Object> responseJSON = new LinkedHashMap<>();
-			responseJSON.put("status_code", 6);
-			responseJSON.put("status_message", "Email not verified!");
-			return responseJSON;
-		}
-		
 
+	// used when updating password (old to new)
+	@ExceptionHandler({ PasswordNotMatchException.class })
+	public Map<String, Object> handlePasswordNotMatch() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 8);
+		responseJSON.put("status_message", "Passwords not match.");
+		return responseJSON;
+	}
 
-//	@PostMapping("/register")
-//	public void user(@RequestBody UserDto userDto) {
-//		
-//		return userService.registerUser(userDto);
-//	}
+	// used in auth check
+	@ExceptionHandler({ WrongEmailOrPasswordException.class })
+	public Map<String, Object> handleWrongEmailOrPassword() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 9);
+		responseJSON.put("status_message", "Wrong email or password.");
+		return responseJSON;
+	}
 
 	@PostMapping("/user/register")
 	public ResponseEntity<String> registerUser(@RequestBody UserDto userDto) {
 		userService.registerUser(userDto);
-		return new ResponseEntity<String>("User registered", HttpStatus.OK);
+		return new ResponseEntity<String>("User Registered!", HttpStatus.OK);
 	}
 
-//	@PostMapping("/email/code")
-//	public ResponseEntity<String> sendEmailCode(@RequestBody LinkedHashMap<String, String> data) {
-//		userService.generateEmailCode(null, data.get("email"));
-//		return new ResponseEntity<String>("Code sended on email", HttpStatus.OK);
-//	}
-
 	@PostMapping("/email/code/send")
-	public ResponseEntity<String> sendEmailCode(@RequestBody LinkedHashMap<String, String> data) {
+	public ResponseEntity<String> sendEmailCodeNoReply(@RequestBody LinkedHashMap<String, String> data) {
 		final String email = data.get("email");
-		userService.generateEmailCode(email);
+		userService.sendEmailCodeNoReply(email);
 		return new ResponseEntity<String>("An email with a verification code was sent to: " + email.substring(0, 5)
 				+ "**********" + " | (no-reply)", HttpStatus.OK);
 	}
@@ -180,6 +187,12 @@ public class AuthenticationController {
 	@PostMapping("/user/password/recover")
 	public ResponseEntity<String> recoverUserPassword(@RequestBody LinkedHashMap<String, String> data) {
 		userService.recoverUserPassword(data.get("email"), data.get("code"), data.get("password"));
+		return new ResponseEntity<String>(HttpStatus.OK);
+	}
+
+	@PostMapping("/user/password/update")
+	public ResponseEntity<String> upadateUserPassword(@RequestBody LinkedHashMap<String, String> data) {
+		userService.updateUserPassword(data.get("email"), data.get("old_password"), data.get("new_password"));
 		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 
