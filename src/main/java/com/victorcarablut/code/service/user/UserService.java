@@ -117,9 +117,7 @@ public class UserService {
 				try {
 					String uuid = UUID.randomUUID().toString().replace("-", "");
 					DateFormat dateFormat = new SimpleDateFormat("ddMMHHmmssmm");
-					user.setUsername(uuid.substring(0, 7).toLowerCase() + "-" + dateFormat.format(new Date())); // max
-																												// 20
-																												// characters
+					user.setUsername(uuid.substring(0, 7).toLowerCase() + "-" + dateFormat.format(new Date())); // max																						// 20																					// characters
 				} catch (Exception e) {
 					throw new GenericException();
 				}
@@ -158,11 +156,11 @@ public class UserService {
 				User user = userRepository.findByEmail(userDto.getEmail());
 
 				if (user.isEnabled()) {
-					
+							
 					if(verifyAuth(user.getUsername(), userDto.getPassword())) {
 						
 						final String token = jwtService
-								.generateToken(userRepository.findByUsername(userDto.getUsername()).orElseThrow());
+								.generateToken(userRepository.findByUsername(user.getUsername()).orElseThrow());
 						TokenDto jwtToken = new TokenDto("token", token);
 
 						tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
@@ -243,15 +241,15 @@ public class UserService {
 
 	}
 	
-	public void enableUserAccount(UserDto userDto) {
-		try {
-			User user = userRepository.findByEmail(userDto.getEmail());
-			user.setEnabled(true);
-			userRepository.save(user);
-		} catch (Exception e) {
-			throw new ErrorSaveDataToDatabaseException();
-		}
-	}
+//	public void enableUserAccount(UserDto userDto) {
+//		try {
+//			User user = userRepository.findByEmail(userDto.getEmail());
+//			user.setEnabled(true);
+//			userRepository.save(user);
+//		} catch (Exception e) {
+//			throw new ErrorSaveDataToDatabaseException();
+//		}
+//	}
 
 
 	// verify code received on email
