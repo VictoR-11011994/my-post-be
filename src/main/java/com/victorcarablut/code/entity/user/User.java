@@ -38,7 +38,8 @@ public class User implements UserDetails {
 
 	private static final long serialVersionUID = 1L;
 
-	// @NotBlank: must not be null and must contain at least onenon-whitespace character.
+	// @NotBlank: must not be null and must contain at least onenon-whitespace
+	// character.
 	// @JsonIgnore: prevent to return the result visible.
 
 	@Id
@@ -46,12 +47,14 @@ public class User implements UserDetails {
 	private Long id;
 
 	@Column(length = 100, nullable = false)
-	@NotBlank @Size(max = 100)
+	@NotBlank
+	@Size(max = 100)
 	private String fullName;
 
 	@Column(unique = true, length = 100, nullable = false)
-	@Email 
-	@NotBlank @Size(max = 100)
+	@Email
+	@NotBlank
+	@Size(max = 100)
 	private String email;
 
 	@Column(unique = true, length = 20)
@@ -61,13 +64,14 @@ public class User implements UserDetails {
 	@JsonIgnore
 	@JsonProperty(access = Access.WRITE_ONLY)
 	@Column(length = 100, nullable = false)
-	@NotBlank @Size(max = 100)
+	@NotBlank
+	@Size(max = 100)
 	private String password;
 
 	@Enumerated(EnumType.STRING)
 	@Column(length = 20)
 	private Role role;
-	
+
 	private boolean enabled;
 
 	@JsonIgnore
@@ -75,8 +79,10 @@ public class User implements UserDetails {
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime registeredDate;
-	
-	
+
+	//@Column(columnDefinition = "MEDIUMBLOB") // (max: 16 mb)
+	//private byte[] userProfileImg;
+
 	@JsonIgnore
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

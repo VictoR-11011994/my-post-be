@@ -85,7 +85,6 @@ public class UserService {
 		return userRepository.findByUsername(username);
 	}
 
-
 	// check email input validity
 	public boolean emailInputIsValid(String email) {
 
@@ -98,7 +97,6 @@ public class UserService {
 			return true;
 		}
 	}
-
 
 	// register new user
 	public void registerUser(UserDto userDto) {
@@ -117,7 +115,10 @@ public class UserService {
 				try {
 					String uuid = UUID.randomUUID().toString().replace("-", "");
 					DateFormat dateFormat = new SimpleDateFormat("ddMMHHmmssmm");
-					user.setUsername(uuid.substring(0, 7).toLowerCase() + "-" + dateFormat.format(new Date())); // max																						// 20																					// characters
+					user.setUsername(uuid.substring(0, 7).toLowerCase() + "-" + dateFormat.format(new Date())); // max
+																												// // 20
+																												// //
+																												// characters
 				} catch (Exception e) {
 					throw new GenericException();
 				}
@@ -135,7 +136,7 @@ public class UserService {
 
 				// ... after (registerUser) on front-end call a separate API to generate code
 				// and send it on email (necessary to verify and enable account)
-	
+
 			}
 
 		} else {
@@ -156,15 +157,15 @@ public class UserService {
 				User user = userRepository.findByEmail(userDto.getEmail());
 
 				if (user.isEnabled()) {
-							
-					if(verifyAuth(user.getUsername(), userDto.getPassword())) {
-						
+
+					if (verifyAuth(user.getUsername(), userDto.getPassword())) {
+
 						final String token = jwtService
 								.generateToken(userRepository.findByUsername(user.getUsername()).orElseThrow());
 						TokenDto jwtToken = new TokenDto("token", token);
 
 						tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
-						
+
 					} else {
 						throw new WrongEmailOrPasswordException();
 					}
@@ -201,34 +202,92 @@ public class UserService {
 			throw new ErrorSaveDataToDatabaseException();
 		}
 	}
+	
+	private Integer getGenerateCodeNoSave;
 
-	public void sendEmailCodeNoReply(String email) {
+	// generate the code but don't save it on DB
+	public Integer generateCodeNoSave() {
+
+		try {
+
+			// generate 6 random numbers
+			SecureRandom secureRandomNumbers = SecureRandom.getInstance("SHA1PRNG");
+			final int randomNumbers = secureRandomNumbers.nextInt(900000) + 100000;
+			// user.setVerificationCode(randomNumbers);
+
+			// userRepository.save(user);
+			
+			getGenerateCodeNoSave = randomNumbers;
+			
+			System.out.println("generateCodeNoSave() : " + randomNumbers);
+
+			return randomNumbers;
+
+		} catch (Exception e) {
+			throw new GenericException();
+		}
+	}
+
+	public void sendEmailCodeNoReply(String email, Boolean saveCodeOnDB) {
 
 		if (emailInputIsValid(email)) {
 
 			if (existsUserByEmail(email)) {
 
-				// execute external method
-				generateCode(email);
+				if (saveCodeOnDB) {
+					
+					// TRUE: save code on DB
+					
+					// execute external method
+					generateCode(email);
 
-				User user = userRepository.findByEmail(email);
+					User user = userRepository.findByEmail(email);
 
-				// extra control of generated code available on db
-				if (user.getVerificationCode() == 0) {
-					throw new GenericException();
-				} else {
-					try {
-						SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-						simpleMailMessage.setFrom(senderEmailNoReply);
-						simpleMailMessage.setTo(user.getEmail());
-						simpleMailMessage.setSubject("Verification Code (no-reply)");
-						simpleMailMessage.setText(user.getVerificationCode().toString());
+					// extra control of generated code available on db
+					if (user.getVerificationCode() == 0) {
+						throw new GenericException();
+					} else {
+						try {
+							SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+							simpleMailMessage.setFrom(senderEmailNoReply);
+							simpleMailMessage.setTo(email);
+							simpleMailMessage.setSubject("Verification Code (no-reply)");
+							simpleMailMessage.setText(user.getVerificationCode().toString());
 
-						javaMailSenderNoReply.send(simpleMailMessage);
+							javaMailSenderNoReply.send(simpleMailMessage);
 
-					} catch (Exception e) {
-						throw new ErrorSendEmailException();
+						} catch (Exception e) {
+							throw new ErrorSendEmailException();
+						}
 					}
+
+				} else {
+					
+					// execute and return random numbers
+					generateCodeNoSave();
+					
+					
+					// extra control of generated code available on db
+					if (getGenerateCodeNoSave == 0) {
+						throw new GenericException();
+					} else {
+						try {
+							SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+							simpleMailMessage.setFrom(senderEmailNoReply);
+							simpleMailMessage.setTo(email);
+							simpleMailMessage.setSubject("Verification Code (no-reply)");
+							simpleMailMessage.setText(getGenerateCodeNoSave.toString());
+
+							javaMailSenderNoReply.send(simpleMailMessage);
+
+						} catch (Exception e) {
+							throw new ErrorSendEmailException();
+						}
+					}
+					
+					
+					
+					
 				}
 
 			} else {
@@ -240,7 +299,7 @@ public class UserService {
 		}
 
 	}
-	
+
 //	public void enableUserAccount(UserDto userDto) {
 //		try {
 //			User user = userRepository.findByEmail(userDto.getEmail());
@@ -251,27 +310,26 @@ public class UserService {
 //		}
 //	}
 
-
 	// verify code received on email
 	public boolean verifyEmailCode(String email, String code) {
-		
+
 		boolean returnStatus = false;
 
 		if (emailInputIsValid(email)) {
 
 			if (existsUserByEmail(email)) {
-				
+
 				final Integer emailCode = Integer.valueOf(code);
 
 				final boolean existsUserAndCode = userRepository.existsUserByEmailAndVerificationCode(email, emailCode);
-			
-				if(existsUserAndCode) {
-					
+
+				if (existsUserAndCode) {
+
 					User user = userRepository.findByEmail(email);
 					// clear code
 					user.setVerificationCode(null);
 					user.setEnabled(true);
-				
+
 					try {
 						userRepository.save(user);
 						returnStatus = true;
@@ -279,7 +337,7 @@ public class UserService {
 						returnStatus = false;
 						throw new ErrorSaveDataToDatabaseException();
 					}
-					
+
 				} else {
 					returnStatus = false;
 					throw new EmailWrongCodeException();
@@ -294,83 +352,167 @@ public class UserService {
 			returnStatus = false;
 			throw new InvalidEmailException();
 		}
-		
+
 		return returnStatus;
 
 	}
-	
+
 	public boolean verifyAuth(String username, String password) {
 		try {
-			authenticationManager
-			.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 			return true;
 		} catch (Exception e) {
 			return false;
 		}
 	}
-	
+
+	// update User (separate update for: email, username, password)
+	public void updateUserDetails(UserDto userDto) {
+
+		if (emailInputIsValid(userDto.getEmail())) {
+
+			if (existsUserByEmail(userDto.getEmail())) {
+
+				User user = userRepository.findByEmail(userDto.getEmail());
+
+				user.setFullName(userDto.getFullName());
+
+				try {
+					userRepository.save(user);
+				} catch (Exception e) {
+					throw new ErrorSaveDataToDatabaseException();
+				}
+
+			} else {
+				throw new EmailNotExistsException();
+			}
+
+		} else {
+			throw new InvalidEmailException();
+		}
+
+	}
+
+	// update User (only email)
+	public void updateUserEmail(String oldEmail, String oldEmailCode, String newEmail, String newEmailCode) {
+
+		if (emailInputIsValid(oldEmail)) {
+
+			if (existsUserByEmail(oldEmail)) {
+
+				// first send on old email code no-reply
+				// second send on new email code no-reply
+
+				if (verifyEmailCode(oldEmail, oldEmailCode)) {
+
+					if (emailInputIsValid(newEmail)) {
+
+						// sendEmailCodeNoReply(newEmail, false);
+
+						// if code is correct: ok update | if not don't save new email on DB
+
+						//final Integer getGenerateCodeNoSave = generateCodeNoSave();
+
+						final Integer getNewEmailCode = Integer.valueOf(newEmailCode);
+
+						if (getNewEmailCode == getGenerateCodeNoSave) {
+
+							User user = userRepository.findByEmail(oldEmail);
+
+							user.setEmail(newEmail);
+
+							// disable
+							// user.setEnabled(false);
+							// able only after code verification
+
+							try {
+								userRepository.save(user);
+							} catch (Exception e) {
+								throw new ErrorSaveDataToDatabaseException();
+							}
+
+						} else {
+							throw new EmailWrongCodeException();
+						}
+
+					} else {
+						throw new InvalidEmailException();
+					}
+
+				} else {
+					throw new EmailWrongCodeException();
+				}
+
+			} else {
+				throw new EmailNotExistsException();
+			}
+
+		} else {
+			throw new InvalidEmailException();
+		}
+	}
+
 	// update existing password
 	public void updateUserPassword(String email, String oldPassword, String newPassword) {
-		
+
 		if (emailInputIsValid(email)) {
-			
+
 			if (existsUserByEmail(email)) {
-				
+
 				User user = userRepository.findByEmail(email);
-				
-				if(verifyAuth(user.getUsername(), oldPassword)) {
-					
+
+				if (verifyAuth(user.getUsername(), oldPassword)) {
+
 					user.setPassword(passwordEncoder.encode(newPassword));
-					
+
 					try {
 						userRepository.save(user);
 					} catch (Exception e) {
 						throw new ErrorSaveDataToDatabaseException();
 					}
-					
+
 				} else {
 					throw new PasswordNotMatchException();
 				}
-				
+
 			} else {
 				throw new EmailNotExistsException();
 			}
-			
+
 		} else {
 			throw new InvalidEmailException();
 		}
-		
+
 	}
 
 	// recover password if forget
 	public void recoverUserPassword(String email, String code, String password) {
-		
+
 		if (emailInputIsValid(email)) {
-			
+
 			if (existsUserByEmail(email)) {
-				
+
 				// first send email code no-reply
-				
-				if(verifyEmailCode(email, code)) {
-					
+
+				if (verifyEmailCode(email, code)) {
+
 					User user = userRepository.findByEmail(email);
 					user.setPassword(passwordEncoder.encode(password));
-					
+
 					try {
 						userRepository.save(user);
 					} catch (Exception e) {
 						throw new ErrorSaveDataToDatabaseException();
 					}
-					
+
 				} else {
 					throw new EmailWrongCodeException();
 				}
-					
-				
+
 			} else {
 				throw new EmailNotExistsException();
 			}
-			
+
 		} else {
 			throw new InvalidEmailException();
 		}
