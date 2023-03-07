@@ -394,36 +394,26 @@ public class UserService {
 	}
 
 	// update User (only email)
-	public void updateUserEmail(String oldEmail, String oldEmailCode, String newEmail, String newEmailCode) {
+	public void updateUserEmail(String oldEmail, String password, String newEmail, String newEmailCode) {
 
 		if (emailInputIsValid(oldEmail)) {
 
 			if (existsUserByEmail(oldEmail)) {
 
-				// first send on old email code no-reply
-				// second send on new email code no-reply
-
-				if (verifyEmailCode(oldEmail, oldEmailCode)) {
-
+				// first: enter password
+				// second: verify password (auth)
+				
+				User user = userRepository.findByEmail(oldEmail);
+				
+				if (verifyAuth(user.getUsername(), password)) {
+					
 					if (emailInputIsValid(newEmail)) {
-
-						// sendEmailCodeNoReply(newEmail, false);
-
-						// if code is correct: ok update | if not don't save new email on DB
-
-						//final Integer getGenerateCodeNoSave = generateCodeNoSave();
-
+						
 						final Integer getNewEmailCode = Integer.valueOf(newEmailCode);
 
 						if (getNewEmailCode == getGenerateCodeNoSave) {
 
-							User user = userRepository.findByEmail(oldEmail);
-
 							user.setEmail(newEmail);
-
-							// disable
-							// user.setEnabled(false);
-							// able only after code verification
 
 							try {
 								userRepository.save(user);
@@ -434,13 +424,21 @@ public class UserService {
 						} else {
 							throw new EmailWrongCodeException();
 						}
-
+						
 					} else {
 						throw new InvalidEmailException();
 					}
+					
+					user.setEmail(newEmail);
+
+					try {
+						userRepository.save(user);
+					} catch (Exception e) {
+						throw new ErrorSaveDataToDatabaseException();
+					}
 
 				} else {
-					throw new EmailWrongCodeException();
+					throw new WrongEmailOrPasswordException();
 				}
 
 			} else {
