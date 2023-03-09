@@ -141,9 +141,17 @@ public class AuthenticationController {
 	@PostMapping("/email/code/send")
 	public ResponseEntity<String> sendEmailCodeNoReply(@RequestBody LinkedHashMap<String, String> data) {
 		final String email = data.get("email");
-		final Boolean saveCode = Boolean.parseBoolean(data.get("save_code"));
-		userService.sendEmailCodeNoReply(email, saveCode);
+		userService.sendEmailCodeNoReply(email);
 		return new ResponseEntity<String>("An email with a verification code was sent to: " + email.substring(0, 5)
+				+ "**********" + " | (no-reply)", HttpStatus.OK);
+	}
+	
+	@PostMapping("/new-email/code/send")
+	public ResponseEntity<String> sendEmailCodeNoReplyNewEmail(@RequestBody LinkedHashMap<String, String> data) {
+		final String oldEmail = data.get("old_email");
+		final String newEmail = data.get("new_email");
+		userService.sendEmailCodeNoReplyNewEmail(oldEmail, newEmail);
+		return new ResponseEntity<String>("An email with a verification code was sent to: " + newEmail.substring(0, 5)
 				+ "**********" + " | (no-reply)", HttpStatus.OK);
 	}
 

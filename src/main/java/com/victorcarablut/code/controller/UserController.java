@@ -154,7 +154,7 @@ public class UserController {
 	// 2) enter code & new email
 	@PutMapping("/email/update")
 	public ResponseEntity<String> updateUserEmail(@RequestBody LinkedHashMap<String, String> data) {
-		userService.updateUserEmail(data.get("old_email"), data.get("password"), data.get("new_email"), data.get("new_email_code"));
+		userService.updateUserEmail(data.get("old_email"), data.get("password"), data.get("new_email"), data.get("code"));
 		return new ResponseEntity<String>("Email Updated!", HttpStatus.OK);
 	}
 

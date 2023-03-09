@@ -202,41 +202,13 @@ public class UserService {
 			throw new ErrorSaveDataToDatabaseException();
 		}
 	}
-	
-	private Integer getGenerateCodeNoSave;
 
-	// generate the code but don't save it on DB
-	public Integer generateCodeNoSave() {
 
-		try {
-
-			// generate 6 random numbers
-			SecureRandom secureRandomNumbers = SecureRandom.getInstance("SHA1PRNG");
-			final int randomNumbers = secureRandomNumbers.nextInt(900000) + 100000;
-			// user.setVerificationCode(randomNumbers);
-
-			// userRepository.save(user);
-			
-			getGenerateCodeNoSave = randomNumbers;
-			
-			System.out.println("generateCodeNoSave() : " + randomNumbers);
-
-			return randomNumbers;
-
-		} catch (Exception e) {
-			throw new GenericException();
-		}
-	}
-
-	public void sendEmailCodeNoReply(String email, Boolean saveCodeOnDB) {
+	public void sendEmailCodeNoReply(String email) {
 
 		if (emailInputIsValid(email)) {
 
 			if (existsUserByEmail(email)) {
-
-				if (saveCodeOnDB) {
-					
-					// TRUE: save code on DB
 					
 					// execute external method
 					generateCode(email);
@@ -261,22 +233,37 @@ public class UserService {
 						}
 					}
 
-				} else {
+			} else {
+				throw new EmailNotExistsException();
+			}
+
+		} else {
+			throw new InvalidEmailException();
+		}
+	}
+	
+	// used when update email
+	public void sendEmailCodeNoReplyNewEmail(String oldEmail, String newEmail) {
+
+		if (emailInputIsValid(oldEmail) && emailInputIsValid(newEmail)) {
+
+			if (existsUserByEmail(oldEmail)) {
 					
-					// execute and return random numbers
-					generateCodeNoSave();
-					
-					
+					// execute external method
+					generateCode(oldEmail);
+
+					User user = userRepository.findByEmail(oldEmail);
+
 					// extra control of generated code available on db
-					if (getGenerateCodeNoSave == 0) {
+					if (user.getVerificationCode() == 0) {
 						throw new GenericException();
 					} else {
 						try {
 							SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 							simpleMailMessage.setFrom(senderEmailNoReply);
-							simpleMailMessage.setTo(email);
-							simpleMailMessage.setSubject("Verification Code (no-reply)");
-							simpleMailMessage.setText(getGenerateCodeNoSave.toString());
+							simpleMailMessage.setTo(newEmail);
+							simpleMailMessage.setSubject("Update Email - Verification Code (no-reply)");
+							simpleMailMessage.setText(user.getVerificationCode().toString());
 
 							javaMailSenderNoReply.send(simpleMailMessage);
 
@@ -284,11 +271,6 @@ public class UserService {
 							throw new ErrorSendEmailException();
 						}
 					}
-					
-					
-					
-					
-				}
 
 			} else {
 				throw new EmailNotExistsException();
@@ -297,7 +279,6 @@ public class UserService {
 		} else {
 			throw new InvalidEmailException();
 		}
-
 	}
 
 //	public void enableUserAccount(UserDto userDto) {
@@ -366,7 +347,7 @@ public class UserService {
 		}
 	}
 
-	// update User (separate update for: email, username, password)
+	// update User (exists another separate update for: email, username, password)
 	public void updateUserDetails(UserDto userDto) {
 
 		if (emailInputIsValid(userDto.getEmail())) {
@@ -409,32 +390,32 @@ public class UserService {
 					
 					if (emailInputIsValid(newEmail)) {
 						
-						final Integer getNewEmailCode = Integer.valueOf(newEmailCode);
+						if (existsUserByEmail(newEmail)) {
+						
+							throw new EmailAlreadyExistsException();
+						
+						} else {
+						
+							//generateCode(oldEmail);
+							
+							if (verifyEmailCode(oldEmail, newEmailCode)) {
+				
+								user.setEmail(newEmail);
+								
+								try {
+									userRepository.save(user);
+								} catch (Exception e) {
+									throw new ErrorSaveDataToDatabaseException();
+								}
 
-						if (getNewEmailCode == getGenerateCodeNoSave) {
-
-							user.setEmail(newEmail);
-
-							try {
-								userRepository.save(user);
-							} catch (Exception e) {
-								throw new ErrorSaveDataToDatabaseException();
+							} else {
+								throw new EmailWrongCodeException();
 							}
 
-						} else {
-							throw new EmailWrongCodeException();
 						}
 						
 					} else {
 						throw new InvalidEmailException();
-					}
-					
-					user.setEmail(newEmail);
-
-					try {
-						userRepository.save(user);
-					} catch (Exception e) {
-						throw new ErrorSaveDataToDatabaseException();
 					}
 
 				} else {
@@ -449,6 +430,9 @@ public class UserService {
 			throw new InvalidEmailException();
 		}
 	}
+	
+	// update username
+	// TODO: similar to updateUserEmail (first step)
 
 	// update existing password
 	public void updateUserPassword(String email, String oldPassword, String newPassword) {
