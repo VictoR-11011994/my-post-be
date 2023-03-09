@@ -98,6 +98,17 @@ public class UserService {
 		}
 	}
 
+	// check username input validity
+	public boolean usernameInputIsValid(String username) {
+
+		if (username == null || username.contains(" ") || username.length() == 0 || username.length() > 20
+				|| username.isEmpty() || username.isBlank()) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 	// register new user
 	public void registerUser(UserDto userDto) {
 
@@ -203,35 +214,34 @@ public class UserService {
 		}
 	}
 
-
 	public void sendEmailCodeNoReply(String email) {
 
 		if (emailInputIsValid(email)) {
 
 			if (existsUserByEmail(email)) {
-					
-					// execute external method
-					generateCode(email);
 
-					User user = userRepository.findByEmail(email);
+				// execute external method
+				generateCode(email);
 
-					// extra control of generated code available on db
-					if (user.getVerificationCode() == 0) {
-						throw new GenericException();
-					} else {
-						try {
-							SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-							simpleMailMessage.setFrom(senderEmailNoReply);
-							simpleMailMessage.setTo(email);
-							simpleMailMessage.setSubject("Verification Code (no-reply)");
-							simpleMailMessage.setText(user.getVerificationCode().toString());
+				User user = userRepository.findByEmail(email);
 
-							javaMailSenderNoReply.send(simpleMailMessage);
+				// extra control of generated code available on db
+				if (user.getVerificationCode() == 0) {
+					throw new GenericException();
+				} else {
+					try {
+						SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+						simpleMailMessage.setFrom(senderEmailNoReply);
+						simpleMailMessage.setTo(email);
+						simpleMailMessage.setSubject("Verification Code (no-reply)");
+						simpleMailMessage.setText(user.getVerificationCode().toString());
 
-						} catch (Exception e) {
-							throw new ErrorSendEmailException();
-						}
+						javaMailSenderNoReply.send(simpleMailMessage);
+
+					} catch (Exception e) {
+						throw new ErrorSendEmailException();
 					}
+				}
 
 			} else {
 				throw new EmailNotExistsException();
@@ -241,36 +251,36 @@ public class UserService {
 			throw new InvalidEmailException();
 		}
 	}
-	
+
 	// used when update email
 	public void sendEmailCodeNoReplyNewEmail(String oldEmail, String newEmail) {
 
 		if (emailInputIsValid(oldEmail) && emailInputIsValid(newEmail)) {
 
 			if (existsUserByEmail(oldEmail)) {
-					
-					// execute external method
-					generateCode(oldEmail);
 
-					User user = userRepository.findByEmail(oldEmail);
+				// execute external method
+				generateCode(oldEmail);
 
-					// extra control of generated code available on db
-					if (user.getVerificationCode() == 0) {
-						throw new GenericException();
-					} else {
-						try {
-							SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-							simpleMailMessage.setFrom(senderEmailNoReply);
-							simpleMailMessage.setTo(newEmail);
-							simpleMailMessage.setSubject("Update Email - Verification Code (no-reply)");
-							simpleMailMessage.setText(user.getVerificationCode().toString());
+				User user = userRepository.findByEmail(oldEmail);
 
-							javaMailSenderNoReply.send(simpleMailMessage);
+				// extra control of generated code available on db
+				if (user.getVerificationCode() == 0) {
+					throw new GenericException();
+				} else {
+					try {
+						SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+						simpleMailMessage.setFrom(senderEmailNoReply);
+						simpleMailMessage.setTo(newEmail);
+						simpleMailMessage.setSubject("Update Email - Verification Code (no-reply)");
+						simpleMailMessage.setText(user.getVerificationCode().toString());
 
-						} catch (Exception e) {
-							throw new ErrorSendEmailException();
-						}
+						javaMailSenderNoReply.send(simpleMailMessage);
+
+					} catch (Exception e) {
+						throw new ErrorSendEmailException();
 					}
+				}
 
 			} else {
 				throw new EmailNotExistsException();
@@ -383,25 +393,25 @@ public class UserService {
 
 				// first: enter password
 				// second: verify password (auth)
-				
+
 				User user = userRepository.findByEmail(oldEmail);
-				
+
 				if (verifyAuth(user.getUsername(), password)) {
-					
+
 					if (emailInputIsValid(newEmail)) {
-						
+
 						if (existsUserByEmail(newEmail)) {
-						
+
 							throw new EmailAlreadyExistsException();
-						
+
 						} else {
-						
-							//generateCode(oldEmail);
-							
+
+							// generateCode(oldEmail);
+
 							if (verifyEmailCode(oldEmail, newEmailCode)) {
-				
+
 								user.setEmail(newEmail);
-								
+
 								try {
 									userRepository.save(user);
 								} catch (Exception e) {
@@ -411,9 +421,8 @@ public class UserService {
 							} else {
 								throw new EmailWrongCodeException();
 							}
-
 						}
-						
+
 					} else {
 						throw new InvalidEmailException();
 					}
@@ -430,9 +439,44 @@ public class UserService {
 			throw new InvalidEmailException();
 		}
 	}
-	
-	// update username
-	// TODO: similar to updateUserEmail (first step)
+
+	// // update User (only username)
+	public void updateUserUsername(String email, String password, String oldUsername, String newUsername) {
+
+		if (emailInputIsValid(email)) {
+
+			if (existsUserByEmail(email)) {
+
+				if (usernameInputIsValid(newUsername)) {
+
+					if (verifyAuth(oldUsername, password)) {
+
+						User user = userRepository.findByEmail(email);
+						user.setUsername(newUsername);
+
+						try {
+							userRepository.save(user);
+						} catch (Exception e) {
+							throw new ErrorSaveDataToDatabaseException();
+						}
+
+					} else {
+						// TODO: create exception username
+						throw new WrongEmailOrPasswordException();
+					}
+
+				} else {
+					throw new GenericException();
+				}
+
+			} else {
+				throw new EmailNotExistsException();
+			}
+
+		} else {
+			throw new InvalidEmailException();
+		}
+	}
 
 	// update existing password
 	public void updateUserPassword(String email, String oldPassword, String newPassword) {
@@ -464,7 +508,6 @@ public class UserService {
 		} else {
 			throw new InvalidEmailException();
 		}
-
 	}
 
 	// recover password if forget

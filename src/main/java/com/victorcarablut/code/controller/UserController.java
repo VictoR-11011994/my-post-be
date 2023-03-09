@@ -157,11 +157,17 @@ public class UserController {
 		userService.updateUserEmail(data.get("old_email"), data.get("password"), data.get("new_email"), data.get("code"));
 		return new ResponseEntity<String>("Email Updated!", HttpStatus.OK);
 	}
+	
+	@PutMapping("/username/update")
+	public ResponseEntity<String> upadateUserUsername(@RequestBody LinkedHashMap<String, String> data) {
+		userService.updateUserUsername(data.get("email"), data.get("password"), data.get("old_username"), data.get("new_username"));
+		return new ResponseEntity<String>("Username Updated!", HttpStatus.OK);
+	}
 
-	@PostMapping("/password/update")
+	@PutMapping("/password/update")
 	public ResponseEntity<String> upadateUserPassword(@RequestBody LinkedHashMap<String, String> data) {
 		userService.updateUserPassword(data.get("email"), data.get("old_password"), data.get("new_password"));
-		return new ResponseEntity<String>(HttpStatus.OK);
+		return new ResponseEntity<String>("Password Updated!", HttpStatus.OK);
 	}
 
 	@GetMapping("/test")
