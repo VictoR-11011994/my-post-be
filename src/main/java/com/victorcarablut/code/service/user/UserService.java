@@ -363,7 +363,8 @@ public class UserService {
 		}
 	}
 
-	// update User (exists another separate update for: email, username, password, ...)
+	// update User (exists another separate update for: email, username, password,
+	// ...)
 	public void updateUserDetails(UserDto userDto) {
 
 		if (emailInputIsValid(userDto.getEmail())) {
@@ -549,15 +550,14 @@ public class UserService {
 		}
 
 	}
-	
+
 	public void updateUserProfileImg(String email, MultipartFile file) throws IOException {
 
 		if (emailInputIsValid(email)) {
 
 			if (existsUserByEmail(email)) {
-				
-				// TODO: 
-				
+
+				// TODO: separated method
 //				private String bytesIntoHumanReadable(long bytes) {
 //				    long kilobyte = 1024;
 //				    long megabyte = kilobyte * 1024;
@@ -584,9 +584,9 @@ public class UserService {
 //				    }
 //				}
 //				
-				//final String userImgBase64 = userDto.getUserProfileImg();
-				//final byte[] decodeUserImgBase64 = Base64.getDecoder().decode(userImgBase64);
-				//final long imgSize = decodeUserImgBase64.length;
+				// final String userImgBase64 = userDto.getUserProfileImg();
+				// final byte[] decodeUserImgBase64 = Base64.getDecoder().decode(userImgBase64);
+				// final long imgSize = decodeUserImgBase64.length;
 				byte[] decodeUserImgBase64 = null;
 				try {
 					decodeUserImgBase64 = file.getBytes();
@@ -598,45 +598,45 @@ public class UserService {
 				Long finalImgSize = 0L;
 				String imgSizeFile = "NULL";
 				String imgType = file.getContentType().toString();
-				
+
 				long kilobyte = 1024;
-			    long megabyte = kilobyte * 1024;
-			    long gigabyte = megabyte * 1024;
-			    long terabyte = gigabyte * 1024;
+				long megabyte = kilobyte * 1024;
+				long gigabyte = megabyte * 1024;
+				long terabyte = gigabyte * 1024;
 
-			    if ((imgSize >= 0) && (imgSize < kilobyte)) {
-			    	finalImgSize = imgSize; // B
-			    	imgSizeFile = "B";
+				if ((imgSize >= 0) && (imgSize < kilobyte)) {
+					finalImgSize = imgSize; // B
+					imgSizeFile = "B";
 
-			    } else if ((imgSize >= kilobyte) && (imgSize < megabyte)) {
-			    	finalImgSize = (imgSize / kilobyte); // KB
-			    	imgSizeFile = "KB";
+				} else if ((imgSize >= kilobyte) && (imgSize < megabyte)) {
+					finalImgSize = (imgSize / kilobyte); // KB
+					imgSizeFile = "KB";
 
-			    } else if ((imgSize >= megabyte) && (imgSize < gigabyte)) {
-			    	finalImgSize = (imgSize / megabyte); // MB
-			    	imgSizeFile = "MB";
+				} else if ((imgSize >= megabyte) && (imgSize < gigabyte)) {
+					finalImgSize = (imgSize / megabyte); // MB
+					imgSizeFile = "MB";
 
-			    } else if ((imgSize >= gigabyte) && (imgSize < terabyte)) {
-			    	finalImgSize = (imgSize / gigabyte); // GB
-			    	imgSizeFile = "GB";
+				} else if ((imgSize >= gigabyte) && (imgSize < terabyte)) {
+					finalImgSize = (imgSize / gigabyte); // GB
+					imgSizeFile = "GB";
 
-			    } else if (imgSize >= terabyte) {
-			    	finalImgSize = (imgSize / terabyte); // TB
-			    	imgSizeFile = "TB";
+				} else if (imgSize >= terabyte) {
+					finalImgSize = (imgSize / terabyte); // TB
+					imgSizeFile = "TB";
 
-			    } else {
-			    	finalImgSize = imgSize;
-			    	imgSizeFile = "NULL";
-			    }
-			    
-			    System.out.println(finalImgSize + imgSizeFile + " " + imgType);
-			    
-			    
-			    // max: 10 MB
-			    if((finalImgSize > 10 && imgSizeFile == "MB") || imgSizeFile == "GB" || imgSizeFile == "TB" || imgSizeFile == "NULL" || !imgType.equals("image/jpeg")) {
-			    	throw new GenericException();
-			    } else {
-			    	User user = userRepository.findByEmail(email);
+				} else {
+					finalImgSize = imgSize;
+					imgSizeFile = "NULL";
+				}
+
+				System.out.println(finalImgSize + imgSizeFile + " " + imgType);
+
+				// max: 10 MB
+				if ((finalImgSize > 10 && imgSizeFile == "MB") || imgSizeFile == "GB" || imgSizeFile == "TB"
+						|| imgSizeFile == "NULL" || !imgType.equals("image/jpeg")) {
+					throw new GenericException();
+				} else {
+					User user = userRepository.findByEmail(email);
 
 					user.setUserProfileImg(file.getBytes());
 
@@ -645,7 +645,7 @@ public class UserService {
 					} catch (Exception e) {
 						throw new ErrorSaveDataToDatabaseException();
 					}
-			    }			
+				}
 
 			} else {
 				throw new EmailNotExistsException();
@@ -654,7 +654,31 @@ public class UserService {
 		} else {
 			throw new InvalidEmailException();
 		}
+	}
 
+	public void deleteUserProfileImg(UserDto userDto) {
+		
+		if (emailInputIsValid(userDto.getEmail())) {
+
+			if (existsUserByEmail(userDto.getEmail())) {
+				
+				User user = userRepository.findByEmail(userDto.getEmail());
+
+				user.setUserProfileImg(null);
+
+				try {
+					userRepository.save(user);
+				} catch (Exception e) {
+					throw new ErrorSaveDataToDatabaseException();
+				}
+
+			} else {
+				throw new EmailNotExistsException();
+			}
+
+		} else {
+			throw new InvalidEmailException();
+		}
 	}
 
 }
