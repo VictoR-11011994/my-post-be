@@ -80,8 +80,8 @@ public class User implements UserDetails {
 	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime registeredDate;
 
-	//@Column(columnDefinition = "MEDIUMBLOB") // (max: 16 mb)
-	//private byte[] userProfileImg;
+	@Column(columnDefinition = "MEDIUMBLOB") // (max: 16 mb)
+	private byte[] userProfileImg;
 
 	@JsonIgnore
 	@Override

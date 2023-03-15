@@ -1,5 +1,6 @@
 package com.victorcarablut.code.controller;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -15,7 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.User;
@@ -169,6 +172,20 @@ public class UserController {
 		userService.updateUserPassword(data.get("email"), data.get("old_password"), data.get("new_password"));
 		return new ResponseEntity<String>("Password Updated!", HttpStatus.OK);
 	}
+	
+	@PutMapping("/profile-image/update")
+	public ResponseEntity<String> updateUserProfileImg(@RequestParam String email, @RequestParam("userProfileImg") MultipartFile file) {
+		try {
+
+			userService.updateUserProfileImg(email, file);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new ResponseEntity<String>("Image Updated!", HttpStatus.OK);
+	}
+	
+	
 
 	@GetMapping("/test")
 	public String test() {
