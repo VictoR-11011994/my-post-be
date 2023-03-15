@@ -596,7 +596,8 @@ public class UserService {
 				}
 				final long imgSize = decodeUserImgBase64.length;
 				Long finalImgSize = 0L;
-				String type = "";
+				String imgSizeFile = "NULL";
+				String imgType = file.getContentType().toString();
 				
 				long kilobyte = 1024;
 			    long megabyte = kilobyte * 1024;
@@ -605,34 +606,34 @@ public class UserService {
 
 			    if ((imgSize >= 0) && (imgSize < kilobyte)) {
 			    	finalImgSize = imgSize; // B
-			    	type = "B";
+			    	imgSizeFile = "B";
 
 			    } else if ((imgSize >= kilobyte) && (imgSize < megabyte)) {
 			    	finalImgSize = (imgSize / kilobyte); // KB
-			    	type = "KB";
+			    	imgSizeFile = "KB";
 
 			    } else if ((imgSize >= megabyte) && (imgSize < gigabyte)) {
 			    	finalImgSize = (imgSize / megabyte); // MB
-			    	type = "MB";
+			    	imgSizeFile = "MB";
 
 			    } else if ((imgSize >= gigabyte) && (imgSize < terabyte)) {
 			    	finalImgSize = (imgSize / gigabyte); // GB
-			    	type = "GB";
+			    	imgSizeFile = "GB";
 
 			    } else if (imgSize >= terabyte) {
 			    	finalImgSize = (imgSize / terabyte); // TB
-			    	type = "TB";
+			    	imgSizeFile = "TB";
 
 			    } else {
 			    	finalImgSize = imgSize;
-			    	type = "NULL";
+			    	imgSizeFile = "NULL";
 			    }
 			    
-			    System.out.println(finalImgSize + type);
-				
+			    System.out.println(finalImgSize + imgSizeFile + " " + imgType);
+			    
 			    
 			    // max: 10 MB
-			    if((finalImgSize > 10 && type == "MB") || type == "GB" || type == "TB" || type == "NULL" ) {
+			    if((finalImgSize > 10 && imgSizeFile == "MB") || imgSizeFile == "GB" || imgSizeFile == "TB" || imgSizeFile == "NULL" || !imgType.equals("image/jpeg")) {
 			    	throw new GenericException();
 			    } else {
 			    	User user = userRepository.findByEmail(email);

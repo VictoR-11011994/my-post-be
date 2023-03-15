@@ -176,7 +176,6 @@ public class UserController {
 	@PutMapping("/profile-image/update")
 	public ResponseEntity<String> updateUserProfileImg(@RequestParam String email, @RequestParam("userProfileImg") MultipartFile file) {
 		try {
-
 			userService.updateUserProfileImg(email, file);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
