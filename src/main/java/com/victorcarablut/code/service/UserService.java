@@ -1,4 +1,4 @@
-package com.victorcarablut.code.service.user;
+package com.victorcarablut.code.service;
 
 import java.io.IOException;
 import java.security.SecureRandom;
@@ -39,9 +39,8 @@ import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
 import com.victorcarablut.code.exceptions.PasswordNotMatchException;
 import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
+import com.victorcarablut.code.repository.UserRepository;
 import com.victorcarablut.code.exceptions.EmailWrongCodeException;
-
-import com.victorcarablut.code.repository.user.UserRepository;
 import com.victorcarablut.code.security.jwt.JwtService;
 
 @Service
@@ -78,7 +77,7 @@ public class UserService {
 		return userRepository.findByEmailAndReturnOnlyEmail(email);
 	}
 
-	// find only email true/false
+	// find only email: true/false
 	public boolean existsUserByEmail(String email) {
 		return userRepository.existsUserByEmail(email);
 	}

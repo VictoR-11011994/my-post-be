@@ -1,4 +1,4 @@
-package com.victorcarablut.code.repository.user;
+package com.victorcarablut.code.repository;
 
 import java.util.Map;
 import java.util.Optional;
@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.victorcarablut.code.entity.user.User;
 
-public interface UserRepository  extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
 	
 	@Query(value = "SELECT u.email FROM users u WHERE u.email = :email", nativeQuery = true)
     Map<String, Object> findByEmailAndReturnOnlyEmail(String email);

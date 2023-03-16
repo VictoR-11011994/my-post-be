@@ -33,7 +33,7 @@ import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
 import com.victorcarablut.code.exceptions.PasswordNotMatchException;
 import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
-import com.victorcarablut.code.service.user.UserService;
+import com.victorcarablut.code.service.UserService;
 
 // private access
 

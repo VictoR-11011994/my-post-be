@@ -27,6 +27,7 @@ import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
 import com.victorcarablut.code.exceptions.PasswordNotMatchException;
 import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
+import com.victorcarablut.code.service.UserService;
 import com.victorcarablut.code.exceptions.EmailWrongCodeException;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
 
@@ -38,7 +39,6 @@ import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.User;
-import com.victorcarablut.code.service.user.UserService;
 
 //public access
 
