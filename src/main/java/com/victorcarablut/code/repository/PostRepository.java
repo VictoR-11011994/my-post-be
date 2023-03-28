@@ -6,4 +6,7 @@ import com.victorcarablut.code.entity.post.Post;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
+	//Boolean existsPostById(Long id);
+	
+	Post findPostById(Long id);
 }

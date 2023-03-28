@@ -191,10 +191,4 @@ public class UserController {
 		return new ResponseEntity<String>("Image Deleted!", HttpStatus.OK);
 	}
 	
-	
-
-	@GetMapping("/test")
-	public String test() {
-		return "OK";
-	}
 }
