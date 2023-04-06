@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -78,6 +79,15 @@ public class PostController {
 		postService.updatePost(postIdExtractId, post, image, imageStatus);
 		return new ResponseEntity<String>("Post Updated!", HttpStatus.OK);
 	}
+	
+	@PostMapping("/delete")
+	public ResponseEntity<String> deletePost(@RequestBody LinkedHashMap<String, Long> data) {
+		//System.out.println("user id: " + data.get("user_id"));
+		//System.out.println("post id: " + data.get("post_id"));
+		
+		postService.deletePost(data.get("user_id"), data.get("post_id"));
+		return new ResponseEntity<String>("Post Deleted!", HttpStatus.OK);
+	}
 
 //	@PostMapping("/add")
 //	public ResponseEntity<String> addPost(@RequestParam("user_id") Long userId, @RequestParam("post_title") String postTitle, @RequestParam("post_description") String postDescription, @RequestParam("post_image") MultipartFile file) {
@@ -108,16 +118,14 @@ public class PostController {
 //		return new ResponseEntity<String>("Post Created!", HttpStatus.OK);
 //	}
 
-	@PostMapping("/upload/image")
-	public ResponseEntity<String> uploadImage(@RequestParam("user_id") Long userId,
-			@RequestParam("post_id") Long postId, @RequestParam("image") MultipartFile file) {
-		try {
-			postService.uploadImg(userId, postId, file);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return new ResponseEntity<String>("Image Uploaded!", HttpStatus.OK);
-	}
+	/*
+	 * @PostMapping("/upload/image") public ResponseEntity<String>
+	 * uploadImage(@RequestParam("user_id") Long userId,
+	 * 
+	 * @RequestParam("post_id") Long postId, @RequestParam("image") MultipartFile
+	 * file) { try { postService.uploadImg(userId, postId, file); } catch
+	 * (IOException e) { // TODO Auto-generated catch block e.printStackTrace(); }
+	 * return new ResponseEntity<String>("Image Uploaded!", HttpStatus.OK); }
+	 */
 
 }

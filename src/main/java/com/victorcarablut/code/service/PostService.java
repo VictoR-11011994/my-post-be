@@ -177,5 +177,16 @@ public class PostService {
 			throw new GenericException();
 		}
 	}
+	
+	public void deletePost(Long userId, Long postId) {
+		
+		if (existsUserById(userId) && existsPostById(postId)) {
+			postRepository.deleteById(postId);
+			
+		} else {
+			throw new GenericException();
+		}
+		
+	}
 
 }
