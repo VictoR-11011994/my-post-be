@@ -43,7 +43,11 @@ public class PostService {
 	public void createPost(Post post, MultipartFile image) {
 		post.setCreatedDate(LocalDateTime.now());
 
-		postRepository.save(post);
+		try {
+			postRepository.save(post);
+		} catch (Exception e) {
+			throw new ErrorSaveDataToDatabaseException();
+		}
 		
 		if(image != null) {
 			if (!image.isEmpty()) {
@@ -57,7 +61,51 @@ public class PostService {
 				}
 			}
 		}
+	}
+	
+	public void updatePost(Long postId, Post post, MultipartFile image, String imageStatus) {
+		
+		Post postUpdate = postRepository.findPostById(postId);
+		
+		//System.out.println("userId: " + post.getUser().getId());
+		//System.out.println("postId: " + postId);
+		
+		//System.out.println("title: " + post.getTitle());
+		//System.out.println("desc: " + post.getDescription());
+		System.out.println("image: " + post.getImage());
+		
+		postUpdate.setTitle(post.getTitle());
+		postUpdate.setDescription(post.getDescription());
+		
+		if(imageStatus.contains("no-image")) {
+			postUpdate.setImage(null);
+			System.out.println(imageStatus);
+		}
+		
+		postUpdate.setUpdatedDate(LocalDateTime.now());
+		
+		try {
+			postRepository.save(postUpdate);
+		} catch (Exception e) {
+			throw new ErrorSaveDataToDatabaseException();
+		}
+		
+		
+			if(image != null) {
+				if (!image.isEmpty()) {
 
+					// post.setImage(image.getBytes());
+					try {
+						uploadImg(post.getUser().getId(), postId, image);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		
+		
+		
 	}
 
 	public void uploadImg(Long userId, Long postId, MultipartFile file) throws IOException {

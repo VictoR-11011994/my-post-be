@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,6 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.User;
+import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
+import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.service.PostService;
 import com.victorcarablut.code.service.UserService;
 
@@ -31,24 +35,50 @@ import com.victorcarablut.code.service.UserService;
 @RestController
 @RequestMapping("/api/post")
 public class PostController {
-	
+
 	@Autowired
 	private PostService postService;
-	
-	@Autowired
-	private UserService userService;
-	
+
+
+	// Custom exceptions response
+
+	@ExceptionHandler({ GenericException.class })
+	public ResponseEntity<String> handleGenericError() {
+		final String message = "Error";
+		return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler({ ErrorSaveDataToDatabaseException.class })
+	public Map<String, Object> handleErrorSaveDataToDatabase() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 1);
+		responseJSON.put("status_message", "Error save data to DB");
+		return responseJSON;
+	}
+
 	@GetMapping("/all")
 	private List<Post> getAllPosts() {
 		return postService.findAllPosts();
 	}
-	
+
 	@PostMapping("/add")
-	public ResponseEntity<String> addPost(@RequestPart(name = "data") Post post, @RequestPart(name = "image", required = false) MultipartFile image) {
+	public ResponseEntity<String> addPost(@RequestPart(name = "data") Post post,
+			@RequestPart(name = "image", required = false) MultipartFile image) {
 		postService.createPost(post, image);
 		return new ResponseEntity<String>("Post Created!", HttpStatus.OK);
 	}
-	
+
+	@PutMapping("/update")
+	public ResponseEntity<String> updatePost(@RequestPart(name = "post_id") String postId, @RequestPart(name = "data") Post post,
+			@RequestPart(name = "image", required = false) MultipartFile image, @RequestPart(name = "image_status") String imageStatus) {
+		//Long postId = 69L;
+		//System.out.println(postId);
+		
+		final long postIdExtractId = Long.parseLong(postId.replaceAll("[^0-9]", ""));  
+		postService.updatePost(postIdExtractId, post, image, imageStatus);
+		return new ResponseEntity<String>("Post Updated!", HttpStatus.OK);
+	}
+
 //	@PostMapping("/add")
 //	public ResponseEntity<String> addPost(@RequestParam("user_id") Long userId, @RequestParam("post_title") String postTitle, @RequestParam("post_description") String postDescription, @RequestParam("post_image") MultipartFile file) {
 //		
@@ -77,9 +107,10 @@ public class PostController {
 //		
 //		return new ResponseEntity<String>("Post Created!", HttpStatus.OK);
 //	}
-	
+
 	@PostMapping("/upload/image")
-	public ResponseEntity<String> uploadImage(@RequestParam("user_id") Long userId, @RequestParam("post_id") Long postId, @RequestParam("image") MultipartFile file) {
+	public ResponseEntity<String> uploadImage(@RequestParam("user_id") Long userId,
+			@RequestParam("post_id") Long postId, @RequestParam("image") MultipartFile file) {
 		try {
 			postService.uploadImg(userId, postId, file);
 		} catch (IOException e) {
