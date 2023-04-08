@@ -64,9 +64,7 @@ public class Post {
 	@JoinColumn(name = "user_id")
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private User user;
-
-	//@OneToMany(mappedBy = "post")
-	//private List<Like> likes;
-
+	
+	private Long totalLikes;
 
 }

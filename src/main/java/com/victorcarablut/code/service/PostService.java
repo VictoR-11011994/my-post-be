@@ -47,6 +47,9 @@ public class PostService {
 	}
 
 	public List<Post> findAllPosts() {
+        
+		updateListPostTotalLikes();
+
 		return postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
 	}
 
@@ -203,7 +206,10 @@ public class PostService {
 	// ---------- Likes ----------
 	
 	public void addLike(Like like) {
+		
 		likeRepository.save(like);
+		
+		updateListPostTotalLikes();
 	}
 	
 	
@@ -224,6 +230,16 @@ public class PostService {
         }
 		
 		return list;
+	}
+	
+	public void updateListPostTotalLikes() {
+		List<Post> posts = postRepository.findAll();
+		 
+        for(Post post : posts) {   	
+        	//System.out.println(likeRepository.countByPostId(post.getId()));
+        	post.setTotalLikes(likeRepository.countByPostId(post.getId()));
+        	postRepository.save(post);
+        }
 	}
 	
 
