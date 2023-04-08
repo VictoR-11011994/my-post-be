@@ -34,7 +34,7 @@ public class PostService {
 
 	@Autowired
 	private UserRepository userRepository;
-	
+
 	@Autowired
 	private LikeRepository likeRepository;
 
@@ -47,7 +47,7 @@ public class PostService {
 	}
 
 	public List<Post> findAllPosts() {
-        
+
 		updateListPostTotalLikes();
 
 		return postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
@@ -61,8 +61,8 @@ public class PostService {
 		} catch (Exception e) {
 			throw new ErrorSaveDataToDatabaseException();
 		}
-		
-		if(image != null) {
+
+		if (image != null) {
 			if (!image.isEmpty()) {
 
 				// post.setImage(image.getBytes());
@@ -75,50 +75,47 @@ public class PostService {
 			}
 		}
 	}
-	
+
 	public void updatePost(Long postId, Post post, MultipartFile image, String imageStatus) {
-		
+
 		Post postUpdate = postRepository.findPostById(postId);
-		
-		//System.out.println("userId: " + post.getUser().getId());
-		//System.out.println("postId: " + postId);
-		
-		//System.out.println("title: " + post.getTitle());
-		//System.out.println("desc: " + post.getDescription());
+
+		// System.out.println("userId: " + post.getUser().getId());
+		// System.out.println("postId: " + postId);
+
+		// System.out.println("title: " + post.getTitle());
+		// System.out.println("desc: " + post.getDescription());
 		System.out.println("image: " + post.getImage());
-		
+
 		postUpdate.setTitle(post.getTitle());
 		postUpdate.setDescription(post.getDescription());
-		
-		if(imageStatus.contains("no-image")) {
+
+		if (imageStatus.contains("no-image")) {
 			postUpdate.setImage(null);
 			System.out.println(imageStatus);
 		}
-		
+
 		postUpdate.setUpdatedDate(LocalDateTime.now());
-		
+
 		try {
 			postRepository.save(postUpdate);
 		} catch (Exception e) {
 			throw new ErrorSaveDataToDatabaseException();
 		}
-		
-		
-			if(image != null) {
-				if (!image.isEmpty()) {
 
-					// post.setImage(image.getBytes());
-					try {
-						uploadImg(post.getUser().getId(), postId, image);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+		if (image != null) {
+			if (!image.isEmpty()) {
+
+				// post.setImage(image.getBytes());
+				try {
+					uploadImg(post.getUser().getId(), postId, image);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
-		
-		
-		
+		}
+
 	}
 
 	public void uploadImg(Long userId, Long postId, MultipartFile file) throws IOException {
@@ -190,58 +187,86 @@ public class PostService {
 			throw new GenericException();
 		}
 	}
-	
+
 	public void deletePost(Long userId, Long postId) {
-		
+
 		if (existsUserById(userId) && existsPostById(postId)) {
 			postRepository.deleteById(postId);
-			
+
 		} else {
 			throw new GenericException();
 		}
-		
+
 	}
-	
-	
+
 	// ---------- Likes ----------
-	
+
 	public void addLike(Like like) {
-		
+
 		likeRepository.save(like);
-		
+
 		updateListPostTotalLikes();
 	}
-	
-	
+
+	public void removeLike(Like like) {
+
+		//likeRepository.save(like);
+		
+		
+		//System.out.println(like.getPost().getId());
+		//System.out.println(like.getUser().getId());
+		
+		Like findLike =  likeRepository.findByPostIdAndUserId(like.getPost().getId(), like.getUser().getId());
+		
+		//System.out.println(findLike.getId());
+
+		//likeRepository.deleteByPostIdAndUserId(postId, userId);
+		
+		likeRepository.deleteById(findLike.getId());
+
+		updateListPostTotalLikes();
+	}
+
 	public List<LikeDto> findAllPostLikes(LikeDto likeDto) {
-		
+
 		List<Like> likes = likeRepository.findAllByPostId(likeDto.getPostId());
-		
-		List<LikeDto> list = new ArrayList<LikeDto>();   
-	
-		for(Like like : likes) {
+
+		List<LikeDto> list = new ArrayList<LikeDto>();
+
+		for (Like like : likes) {
 			LikeDto likeDto2 = new LikeDto();
-            //System.out.println(like.getUser().getFullName());
+			// System.out.println(like.getUser().getFullName());
 			likeDto2.setPostId(like.getPost().getId());
 			likeDto2.setUserId(like.getUser().getId());
 			likeDto2.setUserFullName(like.getUser().getFullName());
-			
+
 			list.add(likeDto2);
-        }
-		
+		}
+
 		return list;
 	}
-	
+
 	public void updateListPostTotalLikes() {
 		List<Post> posts = postRepository.findAll();
-		 
-        for(Post post : posts) {   	
-        	//System.out.println(likeRepository.countByPostId(post.getId()));
-        	post.setTotalLikes(likeRepository.countByPostId(post.getId()));
-        	postRepository.save(post);
-        }
-	}
-	
 
+		for (Post post : posts) {
+			// System.out.println(likeRepository.countByPostId(post.getId()));
+			post.setTotalLikes(likeRepository.countByPostId(post.getId()));
+
+			if (likeRepository.existsPostByPostIdAndUserId(post.getId(), post.getUser().getId())) {
+				// System.out.println("postId: " + post.getId() + " / " + "userId: " +
+				// post.getUser().getId() + " / " + "userName: " +
+				// post.getUser().getFullName());
+				post.setIsOwnerLike(true);
+			} else {
+				// System.out.println("false");
+				post.setIsOwnerLike(false);
+			}
+			
+			//System.out.println();
+
+			postRepository.save(post);
+		}
+	}
 
 }

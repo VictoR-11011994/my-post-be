@@ -119,6 +119,18 @@ public class PostController {
 		return new ResponseEntity<String>("Liked!", HttpStatus.OK);
 	}
 	
+	@PostMapping("/remove/like")
+	public ResponseEntity<String> removeLike(@RequestBody Like like) {
+		//postService.createPost(post, image);
+		
+		//likeRepository.save(like);
+		
+		postService.removeLike(like);
+		
+		
+		return new ResponseEntity<String>("Like Removed!", HttpStatus.OK);
+	}
+	
 
 	
 	@PostMapping("/find/likes")

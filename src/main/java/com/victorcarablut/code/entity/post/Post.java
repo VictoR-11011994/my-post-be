@@ -66,5 +66,6 @@ public class Post {
 	private User user;
 	
 	private Long totalLikes;
+	private Boolean isOwnerLike;
 
 }
