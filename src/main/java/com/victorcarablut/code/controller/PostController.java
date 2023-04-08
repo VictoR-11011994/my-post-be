@@ -2,9 +2,11 @@ package com.victorcarablut.code.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,7 +24,9 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.victorcarablut.code.dto.LikeDto;
 import com.victorcarablut.code.dto.UserDto;
+import com.victorcarablut.code.entity.post.Like;
 import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
@@ -87,6 +91,39 @@ public class PostController {
 		
 		postService.deletePost(data.get("user_id"), data.get("post_id"));
 		return new ResponseEntity<String>("Post Deleted!", HttpStatus.OK);
+	}
+	
+	// ---------- Likes ----------
+
+	@PutMapping("/add/like0")
+	public ResponseEntity<String> addLike0(@RequestBody LinkedHashMap<String, Long> data) {
+		//postService.createPost(post, image);
+		
+		//likeRepository.save(like);
+		
+		//postService.addLike(data.get("user_id"));
+		
+		
+		return new ResponseEntity<String>("Liked!", HttpStatus.OK);
+	}
+	
+	@PostMapping("/add/like")
+	public ResponseEntity<String> addLike(@RequestBody Like like) {
+		//postService.createPost(post, image);
+		
+		//likeRepository.save(like);
+		
+		postService.addLike(like);
+		
+		
+		return new ResponseEntity<String>("Liked!", HttpStatus.OK);
+	}
+	
+
+	
+	@PostMapping("/find/likes")
+	private List<LikeDto> getAllPostLikes(@RequestBody LikeDto likeDto) {
+		return postService.findAllPostLikes(likeDto);
 	}
 
 //	@PostMapping("/add")

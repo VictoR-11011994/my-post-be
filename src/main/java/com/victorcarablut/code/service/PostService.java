@@ -2,20 +2,27 @@ package com.victorcarablut.code.service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.victorcarablut.code.dto.LikeDto;
+import com.victorcarablut.code.entity.post.Like;
 import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.exceptions.EmailNotExistsException;
 import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
+import com.victorcarablut.code.repository.LikeRepository;
 import com.victorcarablut.code.repository.PostRepository;
 import com.victorcarablut.code.repository.UserRepository;
 
@@ -27,6 +34,9 @@ public class PostService {
 
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private LikeRepository likeRepository;
 
 	public boolean existsPostById(Long id) {
 		return postRepository.existsById(id);
@@ -188,5 +198,34 @@ public class PostService {
 		}
 		
 	}
+	
+	
+	// ---------- Likes ----------
+	
+	public void addLike(Like like) {
+		likeRepository.save(like);
+	}
+	
+	
+	public List<LikeDto> findAllPostLikes(LikeDto likeDto) {
+		
+		List<Like> likes = likeRepository.findAllByPostId(likeDto.getPostId());
+		
+		List<LikeDto> list = new ArrayList<LikeDto>();   
+	
+		for(Like like : likes) {
+			LikeDto likeDto2 = new LikeDto();
+            //System.out.println(like.getUser().getFullName());
+			likeDto2.setPostId(like.getPost().getId());
+			likeDto2.setUserId(like.getUser().getId());
+			likeDto2.setUserFullName(like.getUser().getFullName());
+			
+			list.add(likeDto2);
+        }
+		
+		return list;
+	}
+	
+
 
 }
