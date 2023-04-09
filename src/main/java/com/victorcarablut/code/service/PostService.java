@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -202,8 +203,22 @@ public class PostService {
 	// ---------- Likes ----------
 
 	public void addLike(Like like) {
+		
+		if (likeRepository.existsPostByPostIdAndUserId(like.getPost().getId(), like.getUser().getId())) {
+			// System.out.println("postId: " + post.getId() + " / " + "userId: " +
+			// post.getUser().getId() + " / " + "userName: " +
+			// post.getUser().getFullName());
+			//post.setIsOwnerLike(true);
+			
+			// like laready exists
+		} else {
+			// System.out.println("false");
 
-		likeRepository.save(like);
+			
+			likeRepository.save(like);
+		}
+
+		
 
 		updateListPostTotalLikes();
 	}
@@ -267,6 +282,80 @@ public class PostService {
 
 			postRepository.save(post);
 		}
+	}
+	
+	public List<Post> findTest() {
+		
+		List<Post> posts = postRepository.findAll();
+		
+
+		//List<Like> likes = new ArrayList<>();
+		//List<Object> likes2 = new ArrayList<>();
+		
+		for (Post post : posts) {
+			
+			Long postId = post.getId();
+			Long userId = post.getUser().getId();
+			
+			//System.out.println("post id: " + postId + " / " + "user id: " + userId);
+			//System.out.println("Name: " + post.getUser().getFullName());
+			//System.out.println("................................");
+			
+			
+			List<Like> likes = likeRepository.findAllByPostId(postId);
+			
+			
+			//List<LikeDto> list = new ArrayList<LikeDto>();
+			
+			
+			
+			ArrayList<LikeDto> cars = new ArrayList<>();
+
+			for (Like like : likes) {
+				LikeDto likeDto2 = new LikeDto();
+				// System.out.println(like.getUser().getFullName());
+				
+				 likeDto2.setPostId(like.getPost().getId());
+				 likeDto2.setUserId(like.getUser().getId());
+				 likeDto2.setUserFullName(like.getUser().getFullName());
+				 
+				 System.out.println(likeDto2.getUserId());
+				 
+				 if(post.getUser().getId() == likeDto2.getUserId()) {
+					 System.out.println("same user liked the post, click to remove the like");
+				 }
+				 
+				 
+				 
+				 LikeDto likeDtoTest = new LikeDto();
+				 likeDtoTest.setPostId(like.getPost().getId());
+				 likeDtoTest.setUserId(like.getUser().getId());
+				 likeDtoTest.setUserFullName(like.getUser().getFullName());
+				 
+				 
+				 
+				cars.add(likeDtoTest); 
+				
+				post.setLikes(cars);
+				
+				
+
+			
+				//likes2.add(likeDto2);
+				 
+			}
+			
+			
+			
+			
+		}
+		
+		//List<Object> newList = Stream.concat(posts.stream(), likes2.stream()).toList();
+		
+		//List<Post> newList = posts.stream().toList();
+		
+		return posts;
+		
 	}
 
 }

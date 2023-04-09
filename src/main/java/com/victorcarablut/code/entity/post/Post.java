@@ -9,6 +9,8 @@ import java.util.Set;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.victorcarablut.code.dto.LikeDto;
 import com.victorcarablut.code.entity.user.User;
 
 import jakarta.persistence.CascadeType;
@@ -25,6 +27,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -64,6 +67,15 @@ public class Post {
 	@JoinColumn(name = "user_id")
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private User user;
+	
+	//@OneToMany(cascade = CascadeType.ALL)
+	//@OneToMany(fetch = FetchType.LAZY, mappedBy = "post")
+	//private List<Like> likes;
+	
+	@JsonInclude()
+	@Transient
+	private List<LikeDto> likes = new ArrayList<>();
+	
 	
 	private Long totalLikes;
 	private Boolean isOwnerLike;

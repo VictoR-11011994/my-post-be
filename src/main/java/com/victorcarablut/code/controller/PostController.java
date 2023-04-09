@@ -137,6 +137,11 @@ public class PostController {
 	private List<LikeDto> getAllPostLikes(@RequestBody LikeDto likeDto) {
 		return postService.findAllPostLikes(likeDto);
 	}
+	
+	@GetMapping("/find/likes/test")
+	public List<Post> findTest() {
+		return postService.findTest();
+	}
 
 //	@PostMapping("/add")
 //	public ResponseEntity<String> addPost(@RequestParam("user_id") Long userId, @RequestParam("post_title") String postTitle, @RequestParam("post_description") String postDescription, @RequestParam("post_image") MultipartFile file) {
