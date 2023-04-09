@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class LikeDto {
 
+	private Long likeId;
 	private Long postId;
 	private Long userId;
 	private String userFullName;

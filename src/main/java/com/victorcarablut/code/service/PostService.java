@@ -47,12 +47,52 @@ public class PostService {
 		return userRepository.existsById(id);
 	}
 
+//	public List<Post> findAllPosts() {
+//
+//		updateListPostTotalLikes();
+//
+//		return postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+//	}
+	
 	public List<Post> findAllPosts() {
 
 		updateListPostTotalLikes();
+	
+				List<Post> posts = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+				
+				for (Post post : posts) {
+					
+					List<Like> likes = likeRepository.findAllByPostId(post.getId());
+					
+					ArrayList<LikeDto> likesDto = new ArrayList<>();
 
-		return postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+					for (Like like : likes) {
+						//LikeDto likeDto2 = new LikeDto();
+						// System.out.println(like.getUser().getFullName());
+						
+						 //likeDto2.setPostId(like.getPost().getId());
+						 //likeDto2.setUserId(like.getUser().getId());
+						 //likeDto2.setUserFullName(like.getUser().getFullName());
+						 
+
+						 LikeDto likeDto = new LikeDto();
+						 likeDto.setLikeId(like.getId());
+						 likeDto.setPostId(like.getPost().getId());
+						 likeDto.setUserId(like.getUser().getId());
+						 likeDto.setUserFullName(like.getUser().getFullName());
+						 
+						 likesDto.add(likeDto); 
+						
+						post.setLikes(likesDto);
+
+					}
+			
+				}
+
+		return posts;
 	}
+	
+	
 
 	public void createPost(Post post, MultipartFile image) {
 		post.setCreatedDate(LocalDateTime.now());
@@ -242,6 +282,7 @@ public class PostService {
 		updateListPostTotalLikes();
 	}
 
+	// NOT USED
 	public List<LikeDto> findAllPostLikes(LikeDto likeDto) {
 
 		List<Like> likes = likeRepository.findAllByPostId(likeDto.getPostId());
@@ -284,30 +325,15 @@ public class PostService {
 		}
 	}
 	
+	// NOT USED
 	public List<Post> findTest() {
 		
-		List<Post> posts = postRepository.findAll();
-		
-
-		//List<Like> likes = new ArrayList<>();
-		//List<Object> likes2 = new ArrayList<>();
+		//List<Post> posts = postRepository.findAll(); 
+		List<Post> posts = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
 		
 		for (Post post : posts) {
 			
-			Long postId = post.getId();
-			Long userId = post.getUser().getId();
-			
-			//System.out.println("post id: " + postId + " / " + "user id: " + userId);
-			//System.out.println("Name: " + post.getUser().getFullName());
-			//System.out.println("................................");
-			
-			
-			List<Like> likes = likeRepository.findAllByPostId(postId);
-			
-			
-			//List<LikeDto> list = new ArrayList<LikeDto>();
-			
-			
+			List<Like> likes = likeRepository.findAllByPostId(post.getId());
 			
 			ArrayList<LikeDto> cars = new ArrayList<>();
 
@@ -319,40 +345,26 @@ public class PostService {
 				 likeDto2.setUserId(like.getUser().getId());
 				 likeDto2.setUserFullName(like.getUser().getFullName());
 				 
-				 System.out.println(likeDto2.getUserId());
+				 //System.out.println(likeDto2.getUserId());
 				 
-				 if(post.getUser().getId() == likeDto2.getUserId()) {
-					 System.out.println("same user liked the post, click to remove the like");
-				 }
+//				 if(post.getUser().getId() == likeDto2.getUserId()) {
+//					 System.out.println("same user liked the post, click to remove the like");
+//				 }
 				 
-				 
-				 
+
 				 LikeDto likeDtoTest = new LikeDto();
 				 likeDtoTest.setPostId(like.getPost().getId());
 				 likeDtoTest.setUserId(like.getUser().getId());
 				 likeDtoTest.setUserFullName(like.getUser().getFullName());
 				 
-				 
-				 
 				cars.add(likeDtoTest); 
 				
 				post.setLikes(cars);
-				
-				
 
-			
-				//likes2.add(likeDto2);
-				 
 			}
-			
-			
-			
-			
+	
 		}
-		
-		//List<Object> newList = Stream.concat(posts.stream(), likes2.stream()).toList();
-		
-		//List<Post> newList = posts.stream().toList();
+
 		
 		return posts;
 		

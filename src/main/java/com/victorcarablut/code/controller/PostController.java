@@ -95,6 +95,7 @@ public class PostController {
 	
 	// ---------- Likes ----------
 
+	// NOT USED
 	@PutMapping("/add/like0")
 	public ResponseEntity<String> addLike0(@RequestBody LinkedHashMap<String, Long> data) {
 		//postService.createPost(post, image);
@@ -133,6 +134,7 @@ public class PostController {
 	
 
 	
+	// NOT USED
 	@PostMapping("/find/likes")
 	private List<LikeDto> getAllPostLikes(@RequestBody LikeDto likeDto) {
 		return postService.findAllPostLikes(likeDto);
