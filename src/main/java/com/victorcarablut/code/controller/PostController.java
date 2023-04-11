@@ -76,9 +76,6 @@ public class PostController {
 	@PutMapping("/update")
 	public ResponseEntity<String> updatePost(@RequestPart(name = "post_id") String postId, @RequestPart(name = "data") Post post,
 			@RequestPart(name = "image", required = false) MultipartFile image, @RequestPart(name = "image_status") String imageStatus) {
-		//Long postId = 69L;
-		//System.out.println(postId);
-		
 		final long postIdExtractId = Long.parseLong(postId.replaceAll("[^0-9]", ""));  
 		postService.updatePost(postIdExtractId, post, image, imageStatus);
 		return new ResponseEntity<String>("Post Updated!", HttpStatus.OK);
@@ -86,102 +83,24 @@ public class PostController {
 	
 	@PostMapping("/delete")
 	public ResponseEntity<String> deletePost(@RequestBody LinkedHashMap<String, Long> data) {
-		//System.out.println("user id: " + data.get("user_id"));
-		//System.out.println("post id: " + data.get("post_id"));
-		
 		postService.deletePost(data.get("user_id"), data.get("post_id"));
 		return new ResponseEntity<String>("Post Deleted!", HttpStatus.OK);
 	}
 	
 	// ---------- Likes ----------
-
-	// NOT USED
-	@PutMapping("/add/like0")
-	public ResponseEntity<String> addLike0(@RequestBody LinkedHashMap<String, Long> data) {
-		//postService.createPost(post, image);
-		
-		//likeRepository.save(like);
-		
-		//postService.addLike(data.get("user_id"));
-		
-		
-		return new ResponseEntity<String>("Liked!", HttpStatus.OK);
-	}
 	
 	@PostMapping("/add/like")
 	public ResponseEntity<String> addLike(@RequestBody Like like) {
-		//postService.createPost(post, image);
-		
-		//likeRepository.save(like);
-		
 		postService.addLike(like);
-		
-		
 		return new ResponseEntity<String>("Liked!", HttpStatus.OK);
 	}
 	
 	@PostMapping("/remove/like")
 	public ResponseEntity<String> removeLike(@RequestBody Like like) {
-		//postService.createPost(post, image);
-		
-		//likeRepository.save(like);
-		
 		postService.removeLike(like);
-		
-		
 		return new ResponseEntity<String>("Like Removed!", HttpStatus.OK);
 	}
 	
 
-	
-	// NOT USED
-	@PostMapping("/find/likes")
-	private List<LikeDto> getAllPostLikes(@RequestBody LikeDto likeDto) {
-		return postService.findAllPostLikes(likeDto);
-	}
-	
-	@GetMapping("/find/likes/test")
-	public List<Post> findTest() {
-		return postService.findTest();
-	}
-
-//	@PostMapping("/add")
-//	public ResponseEntity<String> addPost(@RequestParam("user_id") Long userId, @RequestParam("post_title") String postTitle, @RequestParam("post_description") String postDescription, @RequestParam("post_image") MultipartFile file) {
-//		
-//		User user = new User();
-//		user.setId(userId);
-//		
-//		Post post = new Post();
-//		//post.setUser();
-//		post.setTitle(postTitle);
-//		post.setDescription(postDescription);
-//		post.setCreatedDate(LocalDateTime.now());
-//		
-//		postService.createPost(post);
-//		
-//		try {
-//			if(file.getBytes() != null) {
-//				
-//				//postService.uploadImg(userId, post.getId(), file);
-//				
-//			}
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//		
-//		return new ResponseEntity<String>("Post Created!", HttpStatus.OK);
-//	}
-
-	/*
-	 * @PostMapping("/upload/image") public ResponseEntity<String>
-	 * uploadImage(@RequestParam("user_id") Long userId,
-	 * 
-	 * @RequestParam("post_id") Long postId, @RequestParam("image") MultipartFile
-	 * file) { try { postService.uploadImg(userId, postId, file); } catch
-	 * (IOException e) { // TODO Auto-generated catch block e.printStackTrace(); }
-	 * return new ResponseEntity<String>("Image Uploaded!", HttpStatus.OK); }
-	 */
 
 }

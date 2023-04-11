@@ -67,13 +67,6 @@ public class PostService {
 					ArrayList<LikeDto> likesDto = new ArrayList<>();
 
 					for (Like like : likes) {
-						//LikeDto likeDto2 = new LikeDto();
-						// System.out.println(like.getUser().getFullName());
-						
-						 //likeDto2.setPostId(like.getPost().getId());
-						 //likeDto2.setUserId(like.getUser().getId());
-						 //likeDto2.setUserFullName(like.getUser().getFullName());
-						 
 
 						 LikeDto likeDto = new LikeDto();
 						 likeDto.setLikeId(like.getId());
@@ -244,19 +237,10 @@ public class PostService {
 
 	public void addLike(Like like) {
 		
-		if (likeRepository.existsPostByPostIdAndUserId(like.getPost().getId(), like.getUser().getId())) {
-			// System.out.println("postId: " + post.getId() + " / " + "userId: " +
-			// post.getUser().getId() + " / " + "userName: " +
-			// post.getUser().getFullName());
-			//post.setIsOwnerLike(true);
-			
-			// like laready exists
-		} else {
-			// System.out.println("false");
-
+		if (!likeRepository.existsPostByPostIdAndUserId(like.getPost().getId(), like.getUser().getId())) {
 			
 			likeRepository.save(like);
-		}
+		} 
 
 		
 
@@ -264,110 +248,34 @@ public class PostService {
 	}
 
 	public void removeLike(Like like) {
-
-		//likeRepository.save(like);
-		
-		
-		//System.out.println(like.getPost().getId());
-		//System.out.println(like.getUser().getId());
 		
 		Like findLike =  likeRepository.findByPostIdAndUserId(like.getPost().getId(), like.getUser().getId());
-		
-		//System.out.println(findLike.getId());
 
-		//likeRepository.deleteByPostIdAndUserId(postId, userId);
-		
 		likeRepository.deleteById(findLike.getId());
 
 		updateListPostTotalLikes();
 	}
 
-	// NOT USED
-	public List<LikeDto> findAllPostLikes(LikeDto likeDto) {
 
-		List<Like> likes = likeRepository.findAllByPostId(likeDto.getPostId());
-
-		List<LikeDto> list = new ArrayList<LikeDto>();
-
-		for (Like like : likes) {
-			LikeDto likeDto2 = new LikeDto();
-			// System.out.println(like.getUser().getFullName());
-			likeDto2.setPostId(like.getPost().getId());
-			likeDto2.setUserId(like.getUser().getId());
-			likeDto2.setUserFullName(like.getUser().getFullName());
-
-			list.add(likeDto2);
-		}
-
-		return list;
-	}
 
 	public void updateListPostTotalLikes() {
 		List<Post> posts = postRepository.findAll();
 
 		for (Post post : posts) {
-			// System.out.println(likeRepository.countByPostId(post.getId()));
-			post.setTotalLikes(likeRepository.countByPostId(post.getId()));
 
+			post.setTotalLikes(likeRepository.countByPostId(post.getId()));
+			
 			if (likeRepository.existsPostByPostIdAndUserId(post.getId(), post.getUser().getId())) {
-				// System.out.println("postId: " + post.getId() + " / " + "userId: " +
-				// post.getUser().getId() + " / " + "userName: " +
-				// post.getUser().getFullName());
+
 				post.setIsOwnerLike(true);
+
 			} else {
-				// System.out.println("false");
 				post.setIsOwnerLike(false);
 			}
 			
-			//System.out.println();
-
 			postRepository.save(post);
 		}
 	}
-	
-	// NOT USED
-	public List<Post> findTest() {
-		
-		//List<Post> posts = postRepository.findAll(); 
-		List<Post> posts = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-		
-		for (Post post : posts) {
-			
-			List<Like> likes = likeRepository.findAllByPostId(post.getId());
-			
-			ArrayList<LikeDto> cars = new ArrayList<>();
 
-			for (Like like : likes) {
-				LikeDto likeDto2 = new LikeDto();
-				// System.out.println(like.getUser().getFullName());
-				
-				 likeDto2.setPostId(like.getPost().getId());
-				 likeDto2.setUserId(like.getUser().getId());
-				 likeDto2.setUserFullName(like.getUser().getFullName());
-				 
-				 //System.out.println(likeDto2.getUserId());
-				 
-//				 if(post.getUser().getId() == likeDto2.getUserId()) {
-//					 System.out.println("same user liked the post, click to remove the like");
-//				 }
-				 
-
-				 LikeDto likeDtoTest = new LikeDto();
-				 likeDtoTest.setPostId(like.getPost().getId());
-				 likeDtoTest.setUserId(like.getUser().getId());
-				 likeDtoTest.setUserFullName(like.getUser().getFullName());
-				 
-				cars.add(likeDtoTest); 
-				
-				post.setLikes(cars);
-
-			}
-	
-		}
-
-		
-		return posts;
-		
-	}
 
 }
