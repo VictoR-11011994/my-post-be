@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,9 +63,16 @@ public class PostController {
 		return responseJSON;
 	}
 
-	@GetMapping("/all")
-	private List<Post> getAllPosts() {
-		return postService.findAllPosts();
+	@GetMapping("/all/{filter}")
+	private List<Post> getAllPosts(Authentication authentication, @PathVariable("filter") String filter) {
+		
+		if(filter.equals("owner")) {
+			return postService.findAllPostsOwner(authentication.getName());
+		} else {
+			// all
+			return postService.findAllPosts();
+		}
+		
 	}
 
 	@PostMapping("/add")

@@ -47,41 +47,63 @@ public class PostService {
 		return userRepository.existsById(id);
 	}
 
-	
 	public List<Post> findAllPosts() {
 
-				List<Post> posts = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-	
-				
-				for (Post post : posts) {
-					
-					List<Like> likes = likeRepository.findAllByPostId(post.getId());
-					
-					ArrayList<LikeDto> likesDto = new ArrayList<>();
+		List<Post> posts = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
 
-	
-					for (Like like : likes) {
+		for (Post post : posts) {
 
-						 LikeDto likeDto = new LikeDto();
-						 likeDto.setLikeId(like.getId());
-						 likeDto.setPostId(like.getPost().getId());
-						 likeDto.setUserId(like.getUser().getId());
-						 likeDto.setUserFullName(like.getUser().getFullName());
-						 
-						 likesDto.add(likeDto); 
-						
-						
+			List<Like> likes = likeRepository.findAllByPostId(post.getId());
 
-					}
-					
-					post.setLikes(likesDto);
+			ArrayList<LikeDto> likesDto = new ArrayList<>();
 
-				}
+			for (Like like : likes) {
+
+				LikeDto likeDto = new LikeDto();
+				likeDto.setLikeId(like.getId());
+				likeDto.setPostId(like.getPost().getId());
+				likeDto.setUserId(like.getUser().getId());
+				likeDto.setUserFullName(like.getUser().getFullName());
+
+				likesDto.add(likeDto);
+			}
+
+			post.setLikes(likesDto);
+		}
 
 		return posts;
 	}
-	
-	
+
+	public List<Post> findAllPostsOwner(String username) {
+
+		User user = userRepository.findUserByUsername(username);
+
+		List<Post> posts = postRepository.findAllByOrderByUserIdDesc(user.getId());
+
+		for (Post post : posts) {
+
+			List<Like> likes = likeRepository.findAllByPostId(post.getId());
+
+			ArrayList<LikeDto> likesDto = new ArrayList<>();
+
+			for (Like like : likes) {
+
+				LikeDto likeDto = new LikeDto();
+				likeDto.setLikeId(like.getId());
+				likeDto.setPostId(like.getPost().getId());
+				likeDto.setUserId(like.getUser().getId());
+				likeDto.setUserFullName(like.getUser().getFullName());
+
+				likesDto.add(likeDto);
+
+			}
+
+			post.setLikes(likesDto);
+
+		}
+
+		return posts;
+	}
 
 	public void createPost(Post post, MultipartFile image) {
 		post.setCreatedDate(LocalDateTime.now());
@@ -232,21 +254,16 @@ public class PostService {
 	// ---------- Likes ----------
 
 	public void userLike(Like like) {
-		
+
 		if (!likeRepository.existsPostByPostIdAndUserId(like.getPost().getId(), like.getUser().getId())) {
-			
+
 			likeRepository.save(like);
 		} else {
-			Like findLike =  likeRepository.findByPostIdAndUserId(like.getPost().getId(), like.getUser().getId());
+			Like findLike = likeRepository.findByPostIdAndUserId(like.getPost().getId(), like.getUser().getId());
 
 			likeRepository.deleteById(findLike.getId());
 		}
 
 	}
-
-
-
-
-
 
 }
