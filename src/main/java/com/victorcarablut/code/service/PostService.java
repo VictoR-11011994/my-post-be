@@ -47,18 +47,11 @@ public class PostService {
 		return userRepository.existsById(id);
 	}
 
-//	public List<Post> findAllPosts() {
-//
-//		updateListPostTotalLikes();
-//
-//		return postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-//	}
 	
 	public List<Post> findAllPosts() {
 
-		updateListPostTotalLikes();
-	
 				List<Post> posts = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+	
 				
 				for (Post post : posts) {
 					
@@ -66,6 +59,7 @@ public class PostService {
 					
 					ArrayList<LikeDto> likesDto = new ArrayList<>();
 
+	
 					for (Like like : likes) {
 
 						 LikeDto likeDto = new LikeDto();
@@ -76,10 +70,12 @@ public class PostService {
 						 
 						 likesDto.add(likeDto); 
 						
-						post.setLikes(likesDto);
+						
 
 					}
-			
+					
+					post.setLikes(likesDto);
+
 				}
 
 		return posts;
@@ -235,47 +231,22 @@ public class PostService {
 
 	// ---------- Likes ----------
 
-	public void addLike(Like like) {
+	public void userLike(Like like) {
 		
 		if (!likeRepository.existsPostByPostIdAndUserId(like.getPost().getId(), like.getUser().getId())) {
 			
 			likeRepository.save(like);
-		} 
+		} else {
+			Like findLike =  likeRepository.findByPostIdAndUserId(like.getPost().getId(), like.getUser().getId());
 
-		
-
-		updateListPostTotalLikes();
-	}
-
-	public void removeLike(Like like) {
-		
-		Like findLike =  likeRepository.findByPostIdAndUserId(like.getPost().getId(), like.getUser().getId());
-
-		likeRepository.deleteById(findLike.getId());
-
-		updateListPostTotalLikes();
-	}
-
-
-
-	public void updateListPostTotalLikes() {
-		List<Post> posts = postRepository.findAll();
-
-		for (Post post : posts) {
-
-			post.setTotalLikes(likeRepository.countByPostId(post.getId()));
-			
-			if (likeRepository.existsPostByPostIdAndUserId(post.getId(), post.getUser().getId())) {
-
-				post.setIsOwnerLike(true);
-
-			} else {
-				post.setIsOwnerLike(false);
-			}
-			
-			postRepository.save(post);
+			likeRepository.deleteById(findLike.getId());
 		}
+
 	}
+
+
+
+
 
 
 }

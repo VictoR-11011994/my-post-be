@@ -68,16 +68,8 @@ public class Post {
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private User user;
 	
-	//@OneToMany(cascade = CascadeType.ALL)
-	//@OneToMany(fetch = FetchType.LAZY, mappedBy = "post")
-	//private List<Like> likes;
-	
 	@JsonInclude()
 	@Transient
 	private List<LikeDto> likes = new ArrayList<>();
-	
-	
-	private Long totalLikes;
-	private Boolean isOwnerLike;
 
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -128,7 +129,7 @@ public class UserController {
 	}
 
 	@GetMapping("/details")
-	public Optional<User> getUsername(Authentication authentication) {
+	public Optional<User> getUserDetails(Authentication authentication) {
 
 		// System.out.println(authentication.getName());
 		// System.out.println(authentication.getAuthorities());
@@ -146,6 +147,11 @@ public class UserController {
 		// tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
 
 		return userService.findUserDetails(authentication.getName());
+	}
+	
+	@GetMapping("/{username}")
+	public Optional<User> getUserProfile(@PathVariable("username") String username) {
+		return userService.findUserDetails(username);
 	}
 
 	@PutMapping("/details/update")

@@ -11,6 +11,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -89,17 +90,12 @@ public class PostController {
 	
 	// ---------- Likes ----------
 	
-	@PostMapping("/add/like")
-	public ResponseEntity<String> addLike(@RequestBody Like like) {
-		postService.addLike(like);
-		return new ResponseEntity<String>("Liked!", HttpStatus.OK);
+	@PostMapping("/like")
+	public ResponseEntity<String> userLike(@RequestBody Like like) {
+		postService.userLike(like);
+		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 	
-	@PostMapping("/remove/like")
-	public ResponseEntity<String> removeLike(@RequestBody Like like) {
-		postService.removeLike(like);
-		return new ResponseEntity<String>("Like Removed!", HttpStatus.OK);
-	}
 	
 
 

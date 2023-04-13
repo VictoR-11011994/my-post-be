@@ -86,6 +86,9 @@ public class User implements UserDetails {
 
 	@Column(columnDefinition = "MEDIUMBLOB") // (max: 16 mb)
 	private byte[] userProfileImg;
+	
+	@Column(columnDefinition = "MEDIUMBLOB") // (max: 16 mb)
+	private byte[] coverProfileImg;
 
 	@JsonIgnore
 	@Override
@@ -93,9 +96,6 @@ public class User implements UserDetails {
 		return List.of(new SimpleGrantedAuthority(role.name()));
 	}
 	
-	//@OneToMany(cascade = CascadeType.ALL)
-	//@JoinColumn(name = "post_id")
-	//private List<Post> posts;
 
 	@Override
 	public String getPassword() {
