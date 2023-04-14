@@ -33,6 +33,7 @@ import com.victorcarablut.code.exceptions.ErrorSendEmailException;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
 import com.victorcarablut.code.exceptions.PasswordNotMatchException;
+import com.victorcarablut.code.exceptions.UsernameAlreadyExistsException;
 import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
 import com.victorcarablut.code.service.UserService;
 
@@ -109,6 +110,14 @@ public class UserController {
 		responseJSON.put("status_message", "Error while sending email, try again!");
 		return responseJSON;
 	}
+	
+	@ExceptionHandler({ UsernameAlreadyExistsException.class })
+	public Map<String, Object> handleUsernameAlreadyExists() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 10);
+		responseJSON.put("status_message", "Account with that username already exists.");
+		return responseJSON;
+	}
 
 	// used when updating password (old to new)
 	@ExceptionHandler({ PasswordNotMatchException.class })
@@ -170,7 +179,7 @@ public class UserController {
 	
 	@PutMapping("/username/update")
 	public ResponseEntity<String> upadateUserUsername(@RequestBody LinkedHashMap<String, String> data) {
-		userService.updateUserUsername(data.get("email"), data.get("password"), data.get("old_username"), data.get("new_username"));
+		userService.updateUserUsername(data.get("email"), data.get("password"), data.get("old_username"), data.get("new_username").toLowerCase());
 		return new ResponseEntity<String>("Username Updated!", HttpStatus.OK);
 	}
 
@@ -180,21 +189,27 @@ public class UserController {
 		return new ResponseEntity<String>("Password Updated!", HttpStatus.OK);
 	}
 	
-	@PutMapping("/profile-image/update")
-	public ResponseEntity<String> updateUserProfileImg(@RequestParam String email, @RequestParam("userProfileImg") MultipartFile file) {
-		try {
-			userService.updateUserProfileImg(email, file);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	// TODO: for ...profile && ...cover image a logic using condition to use one API call (for update and for delete 1+1)
+	@PutMapping("/image/update")
+	public ResponseEntity<String> updateUserImg(@RequestParam String filter, @RequestParam String email, @RequestParam("userImg") MultipartFile file) {
+		
+		
+			try {
+				userService.updateUserImg(filter, email, file);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		
 		return new ResponseEntity<String>("Image Updated!", HttpStatus.OK);
 	}
 	
-	@PostMapping("/profile-image/delete")
-	public ResponseEntity<String> updateUserProfileImg(@RequestBody UserDto userDto) {
-		userService.deleteUserProfileImg(userDto);
+	@PostMapping("/image/delete")
+	public ResponseEntity<String> updateUserImg(@RequestBody LinkedHashMap<String, String> data) {
+		userService.deleteUserImg(data.get("filter"), data.get("email"));
 		return new ResponseEntity<String>("Image Deleted!", HttpStatus.OK);
 	}
+	
 	
 }

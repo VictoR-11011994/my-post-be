@@ -64,6 +64,7 @@ public class PostService {
 				likeDto.setPostId(like.getPost().getId());
 				likeDto.setUserId(like.getUser().getId());
 				likeDto.setUserFullName(like.getUser().getFullName());
+				likeDto.setUsername(like.getUser().getUsername());
 
 				likesDto.add(likeDto);
 			}
@@ -93,6 +94,7 @@ public class PostService {
 				likeDto.setPostId(like.getPost().getId());
 				likeDto.setUserId(like.getUser().getId());
 				likeDto.setUserFullName(like.getUser().getFullName());
+				likeDto.setUsername(like.getUser().getUsername());
 
 				likesDto.add(likeDto);
 

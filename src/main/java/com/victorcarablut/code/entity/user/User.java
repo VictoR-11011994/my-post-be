@@ -88,7 +88,7 @@ public class User implements UserDetails {
 	private byte[] userProfileImg;
 	
 	@Column(columnDefinition = "MEDIUMBLOB") // (max: 16 mb)
-	private byte[] coverProfileImg;
+	private byte[] userCoverImg;
 
 	@JsonIgnore
 	@Override

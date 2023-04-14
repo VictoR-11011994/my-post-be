@@ -63,15 +63,18 @@ public class PostController {
 		return responseJSON;
 	}
 
-	@GetMapping("/all/{filter}")
-	private List<Post> getAllPosts(Authentication authentication, @PathVariable("filter") String filter) {
+	@GetMapping("/all/{filterByUsername}")
+	private List<Post> getAllPosts(Authentication authentication, @PathVariable("filterByUsername") String filter) {
+		System.out.println(filter);
 		
-		if(filter.equals("owner")) {
-			return postService.findAllPostsOwner(authentication.getName());
+		if(filter.equals("all")) {
+			return postService.findAllPosts();
+			//return postService.findAllPostsOwner(filter);
 		} else {
 			// all
-			return postService.findAllPosts();
-		}
+			//return postService.findAllPosts();
+			return postService.findAllPostsOwner(filter);
+		} 
 		
 	}
 
