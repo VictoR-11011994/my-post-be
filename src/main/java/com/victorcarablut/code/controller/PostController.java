@@ -33,6 +33,7 @@ import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 import com.victorcarablut.code.exceptions.GenericException;
+import com.victorcarablut.code.exceptions.PostMaxLimitException;
 import com.victorcarablut.code.service.PostService;
 import com.victorcarablut.code.service.UserService;
 
@@ -60,6 +61,14 @@ public class PostController {
 		Map<String, Object> responseJSON = new LinkedHashMap<>();
 		responseJSON.put("status_code", 1);
 		responseJSON.put("status_message", "Error save data to DB");
+		return responseJSON;
+	}
+	
+	@ExceptionHandler({ PostMaxLimitException.class })
+	public Map<String, Object> handleErrorPostMaxLimit() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 11);
+		responseJSON.put("status_message", "Reached maximum Posts limit per User!");
 		return responseJSON;
 	}
 

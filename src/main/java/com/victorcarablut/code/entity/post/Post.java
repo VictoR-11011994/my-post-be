@@ -71,5 +71,9 @@ public class Post {
 	@JsonInclude()
 	@Transient
 	private List<LikeDto> likes = new ArrayList<>();
+	
+	@JsonInclude()
+	@Transient
+	private Integer maxPostsLimit = 3; // max. posts creation per User
 
 }

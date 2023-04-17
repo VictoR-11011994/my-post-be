@@ -23,6 +23,7 @@ import com.victorcarablut.code.exceptions.EmailNotExistsException;
 import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
+import com.victorcarablut.code.exceptions.PostMaxLimitException;
 import com.victorcarablut.code.repository.LikeRepository;
 import com.victorcarablut.code.repository.PostRepository;
 import com.victorcarablut.code.repository.UserRepository;
@@ -38,6 +39,10 @@ public class PostService {
 
 	@Autowired
 	private LikeRepository likeRepository;
+	
+	public boolean existsUserByEmail(String email) {
+		return userRepository.existsUserByEmail(email);
+	}
 
 	public boolean existsPostById(Long id) {
 		return postRepository.existsById(id);
@@ -108,26 +113,47 @@ public class PostService {
 	}
 
 	public void createPost(Post post, MultipartFile image) {
-		post.setCreatedDate(LocalDateTime.now());
 
-		try {
-			postRepository.save(post);
-		} catch (Exception e) {
-			throw new ErrorSaveDataToDatabaseException();
-		}
+		if (existsUserByEmail(post.getUser().getEmail())) {
+			
+			List<Post> posts = postRepository.findAllByOrderByUserIdDesc(post.getUser().getId());
+			
+			System.out.println(posts.size());
+			
+			if(posts.size() >= post.getMaxPostsLimit()) {
+				// max limit
+				System.out.println("max limit 3");
+				throw new PostMaxLimitException();
+			} else {
+	
+			post.setCreatedDate(LocalDateTime.now());
 
-		if (image != null) {
-			if (!image.isEmpty()) {
+			try {
+				postRepository.save(post);
+			} catch (Exception e) {
+				throw new ErrorSaveDataToDatabaseException();
+			}
 
-				// post.setImage(image.getBytes());
-				try {
-					uploadImg(post.getUser().getId(), post.getId(), image);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			if (image != null) {
+				if (!image.isEmpty()) {
+
+					// post.setImage(image.getBytes());
+					try {
+						uploadImg(post.getUser().getId(), post.getId(), image);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
+			
+			}
+
+
+		} else {
+			throw new EmailNotExistsException();
 		}
+
 	}
 
 	public void updatePost(Long postId, Post post, MultipartFile image, String imageStatus) {
