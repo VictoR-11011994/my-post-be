@@ -17,4 +17,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
 	@Query(value = "SELECT posts.* FROM posts WHERE posts.user_id = :userId ORDER BY posts.id DESC", nativeQuery = true)
 	List<Post> findAllByOrderByUserIdDesc(Long userId);
+	
+	@Query(value = "SELECT * FROM posts WHERE posts.active=true", nativeQuery = true)
+	List<Post> findAllByOrderByActiveTrueDesc();
+
+
 }

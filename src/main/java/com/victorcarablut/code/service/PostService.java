@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.yaml.snakeyaml.util.ArrayUtils;
 
 import com.victorcarablut.code.dto.LikeDto;
 import com.victorcarablut.code.entity.post.Like;
@@ -54,30 +55,76 @@ public class PostService {
 
 	public List<Post> findAllPosts() {
 
-		List<Post> posts = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+	    List<Post> posts = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+	    
+	    ArrayList<Post> activePosts = new ArrayList<>();
+	    
+	    for (Post post : posts) { 
+	    	
+	    	if(post.getIsActive() != null && post.getIsActive()) {
+	    		activePosts.add(post);
+	    		
+	    		// System.out.println(post.getIsActive());
 
-		for (Post post : posts) {
+	    			List<Like> likes = likeRepository.findAllByPostId(post.getId());
 
-			List<Like> likes = likeRepository.findAllByPostId(post.getId());
+	    			ArrayList<LikeDto> likesDto = new ArrayList<>();
 
-			ArrayList<LikeDto> likesDto = new ArrayList<>();
+	    			for (Like like : likes) {
 
-			for (Like like : likes) {
+	    				LikeDto likeDto = new LikeDto();
+	    				likeDto.setLikeId(like.getId());
+	    				likeDto.setPostId(like.getPost().getId());
+	    				likeDto.setUserId(like.getUser().getId());
+	    				likeDto.setUserFullName(like.getUser().getFullName());
+	    				likeDto.setUsername(like.getUser().getUsername());
 
-				LikeDto likeDto = new LikeDto();
-				likeDto.setLikeId(like.getId());
-				likeDto.setPostId(like.getPost().getId());
-				likeDto.setUserId(like.getUser().getId());
-				likeDto.setUserFullName(like.getUser().getFullName());
-				likeDto.setUsername(like.getUser().getUsername());
+	    				likesDto.add(likeDto);
+	    			}
 
-				likesDto.add(likeDto);
-			}
+	    			post.setLikes(likesDto);
 
-			post.setLikes(likesDto);
-		}
+	    	} 
+	    	
+	    
+	    }
+	    	
 
-		return posts;
+		
+		//List<Post> posts = postRepository.findAllByOrderByActiveTrueDesc();
+		
+		//System.out.println(posts.size());
+		//System.out.println("test: " + postTest.size());
+
+//		for (Post post : posts) {
+//			
+//			System.out.println(post.getIsActive());
+//			
+//			if(post.getIsActive() != null && !post.getIsActive()) {
+//
+//			List<Like> likes = likeRepository.findAllByPostId(post.getId());
+//
+//			ArrayList<LikeDto> likesDto = new ArrayList<>();
+//
+//			for (Like like : likes) {
+//
+//				LikeDto likeDto = new LikeDto();
+//				likeDto.setLikeId(like.getId());
+//				likeDto.setPostId(like.getPost().getId());
+//				likeDto.setUserId(like.getUser().getId());
+//				likeDto.setUserFullName(like.getUser().getFullName());
+//				likeDto.setUsername(like.getUser().getUsername());
+//
+//				likesDto.add(likeDto);
+//			}
+//
+//			post.setLikes(likesDto);
+//			
+//			} 
+//			
+//		}
+
+		return activePosts;
 	}
 
 	public List<Post> findAllPostsOwner(String username) {
@@ -87,27 +134,27 @@ public class PostService {
 		List<Post> posts = postRepository.findAllByOrderByUserIdDesc(user.getId());
 
 		for (Post post : posts) {
+				
+				List<Like> likes = likeRepository.findAllByPostId(post.getId());
 
-			List<Like> likes = likeRepository.findAllByPostId(post.getId());
+				ArrayList<LikeDto> likesDto = new ArrayList<>();
 
-			ArrayList<LikeDto> likesDto = new ArrayList<>();
+				for (Like like : likes) {
 
-			for (Like like : likes) {
+					LikeDto likeDto = new LikeDto();
+					likeDto.setLikeId(like.getId());
+					likeDto.setPostId(like.getPost().getId());
+					likeDto.setUserId(like.getUser().getId());
+					likeDto.setUserFullName(like.getUser().getFullName());
+					likeDto.setUsername(like.getUser().getUsername());
 
-				LikeDto likeDto = new LikeDto();
-				likeDto.setLikeId(like.getId());
-				likeDto.setPostId(like.getPost().getId());
-				likeDto.setUserId(like.getUser().getId());
-				likeDto.setUserFullName(like.getUser().getFullName());
-				likeDto.setUsername(like.getUser().getUsername());
+					likesDto.add(likeDto);
 
-				likesDto.add(likeDto);
+				}
 
+				post.setLikes(likesDto);
 			}
-
-			post.setLikes(likesDto);
-
-		}
+	
 
 		return posts;
 	}
@@ -118,13 +165,16 @@ public class PostService {
 			
 			List<Post> posts = postRepository.findAllByOrderByUserIdDesc(post.getUser().getId());
 			
-			System.out.println(posts.size());
+			//System.out.println(posts.size());
 			
 			if(posts.size() >= post.getMaxPostsLimit()) {
 				// max limit
-				System.out.println("max limit 3");
+				//System.out.println("max limit 3");
 				throw new PostMaxLimitException();
 			} else {
+				
+			// default: false, has to be approved by Admin
+			post.setIsActive(false);
 	
 			post.setCreatedDate(LocalDateTime.now());
 

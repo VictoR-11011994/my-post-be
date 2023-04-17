@@ -75,5 +75,8 @@ public class Post {
 	@JsonInclude()
 	@Transient
 	private Integer maxPostsLimit = 3; // max. posts creation per User
+	
+	@Column(name = "active")
+	private Boolean isActive;
 
 }
