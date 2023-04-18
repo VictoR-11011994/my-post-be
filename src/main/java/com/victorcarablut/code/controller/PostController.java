@@ -72,18 +72,25 @@ public class PostController {
 		return responseJSON;
 	}
 
-	@GetMapping("/all/{filterByUsername}")
-	private List<Post> getAllPosts(Authentication authentication, @PathVariable("filterByUsername") String filter) {
-		System.out.println(filter);
+
+	@GetMapping("/all/{filterBy}")
+	private List<Post> getAllPosts(Authentication authentication, @PathVariable("filterBy") String filter) {
+		// System.out.println(filter);
+		// System.out.println("role: " + authentication.getAuthorities());
 		
-		if(filter.equals("all")) {
-			return postService.findAllPosts();
-			//return postService.findAllPostsOwner(filter);
+		final String userRole = authentication.getAuthorities().toString();
+		
+		if(filter.equals("admin") && userRole.contains("ADMIN")) {
+			// by all
+			return postService.findAllPosts(true);
+		} else if(filter.equals("all")) {
+			// by all active post only
+			return postService.findAllPosts(false);
 		} else {
-			// all
-			//return postService.findAllPosts();
+			// by username only
 			return postService.findAllPostsOwner(filter);
-		} 
+		}
+	
 		
 	}
 

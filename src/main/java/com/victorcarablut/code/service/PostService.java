@@ -40,7 +40,7 @@ public class PostService {
 
 	@Autowired
 	private LikeRepository likeRepository;
-	
+
 	public boolean existsUserByEmail(String email) {
 		return userRepository.existsUserByEmail(email);
 	}
@@ -53,88 +53,20 @@ public class PostService {
 		return userRepository.existsById(id);
 	}
 
-	public List<Post> findAllPosts() {
 
-	    List<Post> posts = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
-	    
-	    ArrayList<Post> activePosts = new ArrayList<>();
-	    
-	    for (Post post : posts) { 
-	    	
-	    	if(post.getIsActive() != null && post.getIsActive()) {
-	    		activePosts.add(post);
-	    		
-	    		// System.out.println(post.getIsActive());
+	public List<Post> findAllPosts(Boolean isAdmin) {
 
-	    			List<Like> likes = likeRepository.findAllByPostId(post.getId());
+		List<Post> postsAll = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
 
-	    			ArrayList<LikeDto> likesDto = new ArrayList<>();
+		ArrayList<Post> postsAllActive = new ArrayList<>();
 
-	    			for (Like like : likes) {
+		for (Post post : postsAll) {
 
-	    				LikeDto likeDto = new LikeDto();
-	    				likeDto.setLikeId(like.getId());
-	    				likeDto.setPostId(like.getPost().getId());
-	    				likeDto.setUserId(like.getUser().getId());
-	    				likeDto.setUserFullName(like.getUser().getFullName());
-	    				likeDto.setUsername(like.getUser().getUsername());
+			if (post.getIsActive() != null && post.getIsActive()) {
+				postsAllActive.add(post);
 
-	    				likesDto.add(likeDto);
-	    			}
+				// System.out.println(post.getIsActive());
 
-	    			post.setLikes(likesDto);
-
-	    	} 
-	    	
-	    
-	    }
-	    	
-
-		
-		//List<Post> posts = postRepository.findAllByOrderByActiveTrueDesc();
-		
-		//System.out.println(posts.size());
-		//System.out.println("test: " + postTest.size());
-
-//		for (Post post : posts) {
-//			
-//			System.out.println(post.getIsActive());
-//			
-//			if(post.getIsActive() != null && !post.getIsActive()) {
-//
-//			List<Like> likes = likeRepository.findAllByPostId(post.getId());
-//
-//			ArrayList<LikeDto> likesDto = new ArrayList<>();
-//
-//			for (Like like : likes) {
-//
-//				LikeDto likeDto = new LikeDto();
-//				likeDto.setLikeId(like.getId());
-//				likeDto.setPostId(like.getPost().getId());
-//				likeDto.setUserId(like.getUser().getId());
-//				likeDto.setUserFullName(like.getUser().getFullName());
-//				likeDto.setUsername(like.getUser().getUsername());
-//
-//				likesDto.add(likeDto);
-//			}
-//
-//			post.setLikes(likesDto);
-//			
-//			} 
-//			
-//		}
-
-		return activePosts;
-	}
-
-	public List<Post> findAllPostsOwner(String username) {
-
-		User user = userRepository.findUserByUsername(username);
-
-		List<Post> posts = postRepository.findAllByOrderByUserIdDesc(user.getId());
-
-		for (Post post : posts) {
-				
 				List<Like> likes = likeRepository.findAllByPostId(post.getId());
 
 				ArrayList<LikeDto> likesDto = new ArrayList<>();
@@ -149,12 +81,52 @@ public class PostService {
 					likeDto.setUsername(like.getUser().getUsername());
 
 					likesDto.add(likeDto);
-
 				}
 
 				post.setLikes(likesDto);
+
 			}
-	
+
+		}
+
+
+		
+		if(isAdmin) {
+			return postsAll;
+		} else {
+			return postsAllActive;
+		}
+
+		
+	}
+
+	public List<Post> findAllPostsOwner(String username) {
+
+		User user = userRepository.findUserByUsername(username);
+
+		List<Post> posts = postRepository.findAllByOrderByUserIdDesc(user.getId());
+
+		for (Post post : posts) {
+
+			List<Like> likes = likeRepository.findAllByPostId(post.getId());
+
+			ArrayList<LikeDto> likesDto = new ArrayList<>();
+
+			for (Like like : likes) {
+
+				LikeDto likeDto = new LikeDto();
+				likeDto.setLikeId(like.getId());
+				likeDto.setPostId(like.getPost().getId());
+				likeDto.setUserId(like.getUser().getId());
+				likeDto.setUserFullName(like.getUser().getFullName());
+				likeDto.setUsername(like.getUser().getUsername());
+
+				likesDto.add(likeDto);
+
+			}
+
+			post.setLikes(likesDto);
+		}
 
 		return posts;
 	}
@@ -162,43 +134,42 @@ public class PostService {
 	public void createPost(Post post, MultipartFile image) {
 
 		if (existsUserByEmail(post.getUser().getEmail())) {
-			
+
 			List<Post> posts = postRepository.findAllByOrderByUserIdDesc(post.getUser().getId());
-			
-			//System.out.println(posts.size());
-			
-			if(posts.size() >= post.getMaxPostsLimit()) {
+
+			// System.out.println(posts.size());
+
+			if (posts.size() >= post.getMaxPostsLimit()) {
 				// max limit
-				//System.out.println("max limit 3");
+				// System.out.println("max limit 3");
 				throw new PostMaxLimitException();
 			} else {
-				
-			// default: false, has to be approved by Admin
-			post.setIsActive(false);
-	
-			post.setCreatedDate(LocalDateTime.now());
 
-			try {
-				postRepository.save(post);
-			} catch (Exception e) {
-				throw new ErrorSaveDataToDatabaseException();
-			}
+				// default: false, has to be approved by Admin
+				post.setIsActive(false);
 
-			if (image != null) {
-				if (!image.isEmpty()) {
+				post.setCreatedDate(LocalDateTime.now());
 
-					// post.setImage(image.getBytes());
-					try {
-						uploadImg(post.getUser().getId(), post.getId(), image);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+				try {
+					postRepository.save(post);
+				} catch (Exception e) {
+					throw new ErrorSaveDataToDatabaseException();
+				}
+
+				if (image != null) {
+					if (!image.isEmpty()) {
+
+						// post.setImage(image.getBytes());
+						try {
+							uploadImg(post.getUser().getId(), post.getId(), image);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
-			}
-			
-			}
 
+			}
 
 		} else {
 			throw new EmailNotExistsException();
