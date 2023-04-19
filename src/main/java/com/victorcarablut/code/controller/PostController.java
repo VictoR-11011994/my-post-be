@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.victorcarablut.code.dto.LikeDto;
+import com.victorcarablut.code.dto.PostStatusDto;
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.post.Like;
 import com.victorcarablut.code.entity.post.Post;
@@ -81,7 +82,7 @@ public class PostController {
 		final String userRole = authentication.getAuthorities().toString();
 		
 		if(filter.equals("admin") && userRole.contains("ADMIN")) {
-			// by all
+			// by all active and non active
 			return postService.findAllPosts(true);
 		} else if(filter.equals("all")) {
 			// by all active post only
@@ -114,6 +115,13 @@ public class PostController {
 		postService.deletePost(data.get("user_id"), data.get("post_id"));
 		return new ResponseEntity<String>("Post Deleted!", HttpStatus.OK);
 	}
+	
+	@PostMapping("/status")
+	public ResponseEntity<String> statusPost(Authentication authentication, @RequestBody PostStatusDto postDto) {
+		postService.statusPost(authentication.getName(), postDto.getUserId(), postDto.getPostId(), postDto.getStatus());
+		return new ResponseEntity<String>("Post status updated!", HttpStatus.OK);
+	}
+	
 	
 	// ---------- Likes ----------
 	

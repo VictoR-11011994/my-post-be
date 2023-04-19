@@ -2,6 +2,7 @@ package com.victorcarablut.code.controller;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -156,6 +157,16 @@ public class UserController {
 		// tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
 
 		return userService.findUserDetails(authentication.getName());
+	}
+	
+	@GetMapping("/all")
+	public List<User> getAllUsers(Authentication authentication) {
+		final String userRole = authentication.getAuthorities().toString();
+		if(userRole.contains("ADMIN")) {
+			return userService.findAllUsers();
+		} else {
+			return null;
+		}
 	}
 	
 	@GetMapping("/{username}")

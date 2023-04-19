@@ -53,7 +53,6 @@ public class PostService {
 		return userRepository.existsById(id);
 	}
 
-
 	public List<Post> findAllPosts(Boolean isAdmin) {
 
 		List<Post> postsAll = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
@@ -62,7 +61,7 @@ public class PostService {
 
 		for (Post post : postsAll) {
 
-			if (post.getIsActive() != null && post.getIsActive()) {
+			if (post.getStatus() != null && post.getStatus().equals("active")) {
 				postsAllActive.add(post);
 
 				// System.out.println(post.getIsActive());
@@ -89,15 +88,13 @@ public class PostService {
 
 		}
 
-
-		
-		if(isAdmin) {
+		if (isAdmin) {
+			// filter on frontend to get only active and non active
 			return postsAll;
 		} else {
 			return postsAllActive;
 		}
 
-		
 	}
 
 	public List<Post> findAllPostsOwner(String username) {
@@ -145,8 +142,8 @@ public class PostService {
 				throw new PostMaxLimitException();
 			} else {
 
-				// default: false, has to be approved by Admin
-				post.setIsActive(false);
+				// default: "pending", has to be approved by Admin
+				post.setStatus("pending");
 
 				post.setCreatedDate(LocalDateTime.now());
 
@@ -197,6 +194,8 @@ public class PostService {
 		}
 
 		postUpdate.setUpdatedDate(LocalDateTime.now());
+		
+		postUpdate.setStatus("pending");
 
 		try {
 			postRepository.save(postUpdate);
@@ -293,11 +292,39 @@ public class PostService {
 
 		if (existsUserById(userId) && existsPostById(postId)) {
 			postRepository.deleteById(postId);
-
 		} else {
 			throw new GenericException();
 		}
 
+	}
+
+	public void statusPost(String username, Long userId, Long postId, String status) {
+
+		if (existsUserById(userId) && existsPostById(postId)) {
+
+			Post post = postRepository.findPostById(postId);
+
+			User user = userRepository.findUserByUsername(username);
+
+			final String userRole = user.getAuthorities().toString();
+
+			if (userRole.contains("ADMIN")) {
+
+				post.setStatus(status);
+
+				try {
+					postRepository.save(post);
+				} catch (Exception e) {
+					throw new ErrorSaveDataToDatabaseException();
+				}
+
+			} else {
+				throw new GenericException();
+			}
+
+		} else {
+			throw new GenericException();
+		}
 	}
 
 	// ---------- Likes ----------

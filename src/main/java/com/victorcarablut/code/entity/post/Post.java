@@ -76,7 +76,7 @@ public class Post {
 	@Transient
 	private Integer maxPostsLimit = 3; // max. posts creation per User
 	
-	@Column(name = "active")
-	private Boolean isActive;
+	
+	private String status;
 
 }
