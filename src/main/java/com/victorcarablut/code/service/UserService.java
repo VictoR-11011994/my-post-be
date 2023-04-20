@@ -23,12 +23,14 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.victorcarablut.code.dto.TokenDto;
 import com.victorcarablut.code.dto.UserDto;
+import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.Role;
 import com.victorcarablut.code.entity.user.User;
 
@@ -78,6 +80,11 @@ public class UserService {
 	// find and get only user email
 	public Map<String, Object> findUserByEmail(String email) {
 		return userRepository.findByEmailAndReturnOnlyEmail(email);
+	}
+
+	// find only by id
+	public boolean existsUserById(Long id) {
+		return userRepository.existsUserById(id);
 	}
 
 	// find only email: true/false
@@ -346,6 +353,8 @@ public class UserService {
 					user.setVerificationCode(null);
 					user.setEnabled(true);
 
+					user.setStatus("regular");
+
 					try {
 						userRepository.save(user);
 						returnStatus = true;
@@ -394,6 +403,8 @@ public class UserService {
 
 				user.setFullName(userDto.getFullName());
 
+				user.setUpdatedDate(LocalDateTime.now());
+
 				try {
 					userRepository.save(user);
 				} catch (Exception e) {
@@ -437,6 +448,8 @@ public class UserService {
 							if (verifyEmailCode(oldEmail, newEmailCode)) {
 
 								user.setEmail(newEmail);
+
+								user.setUpdatedDate(LocalDateTime.now());
 
 								try {
 									userRepository.save(user);
@@ -485,6 +498,8 @@ public class UserService {
 							User user = userRepository.findByEmail(email);
 							user.setUsername(newUsername);
 
+							user.setUpdatedDate(LocalDateTime.now());
+
 							try {
 								userRepository.save(user);
 							} catch (Exception e) {
@@ -523,6 +538,8 @@ public class UserService {
 				if (verifyAuth(user.getUsername(), oldPassword)) {
 
 					user.setPassword(passwordEncoder.encode(newPassword));
+
+					user.setUpdatedDate(LocalDateTime.now());
 
 					try {
 						userRepository.save(user);
@@ -664,6 +681,8 @@ public class UserService {
 				} else {
 					User user = userRepository.findByEmail(email);
 
+					user.setUpdatedDate(LocalDateTime.now());
+
 					if (filter.equals("profile")) {
 						user.setUserProfileImg(file.getBytes());
 					} else {
@@ -714,6 +733,36 @@ public class UserService {
 
 		} else {
 			throw new InvalidEmailException();
+		}
+	}
+
+	// admin only
+	public void statusUser(String actualUser, String username, Long actualUserId, String status) {
+
+		if (existsUserById(actualUserId)) {
+
+			User userAdmin = userRepository.findUserByUsername(actualUser); // actualUser => username from: authentication.getName()
+			
+			User user = userRepository.findUserByUsername(username);
+
+			final String userRole = userAdmin.getAuthorities().toString();
+
+			if (userRole.contains("ADMIN")) {
+
+				user.setStatus(status);
+
+				try {
+					userRepository.save(user);
+				} catch (Exception e) {
+					throw new ErrorSaveDataToDatabaseException();
+				}
+
+			} else {
+				throw new GenericException();
+			}
+
+		} else {
+			throw new GenericException();
 		}
 	}
 

@@ -76,7 +76,6 @@ public class Post {
 	@Transient
 	private Integer maxPostsLimit = 3; // max. posts creation per User
 	
-	
-	private String status;
+	private String status; // active - pending - blocked
 
 }

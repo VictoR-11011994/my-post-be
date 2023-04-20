@@ -298,15 +298,16 @@ public class PostService {
 
 	}
 
+	// admin only
 	public void statusPost(String username, Long userId, Long postId, String status) {
 
 		if (existsUserById(userId) && existsPostById(postId)) {
 
 			Post post = postRepository.findPostById(postId);
 
-			User user = userRepository.findUserByUsername(username);
+			User userAdmin = userRepository.findUserByUsername(username);
 
-			final String userRole = user.getAuthorities().toString();
+			final String userRole = userAdmin.getAuthorities().toString();
 
 			if (userRole.contains("ADMIN")) {
 

@@ -83,6 +83,9 @@ public class User implements UserDetails {
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime registeredDate;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	private LocalDateTime updatedDate;
 
 	@Column(columnDefinition = "MEDIUMBLOB") // (max: 16 mb)
 	private byte[] userProfileImg;
@@ -95,6 +98,8 @@ public class User implements UserDetails {
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of(new SimpleGrantedAuthority(role.name()));
 	}
+	
+	private String status; // regular - warning - blocked
 	
 
 	@Override

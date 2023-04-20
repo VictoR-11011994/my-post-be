@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.victorcarablut.code.dto.PostStatusDto;
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
@@ -220,6 +221,12 @@ public class UserController {
 	public ResponseEntity<String> updateUserImg(@RequestBody LinkedHashMap<String, String> data) {
 		userService.deleteUserImg(data.get("filter"), data.get("email"));
 		return new ResponseEntity<String>("Image Deleted!", HttpStatus.OK);
+	}
+	
+	@PostMapping("/status")
+	public ResponseEntity<String> statusUser(Authentication authentication, @RequestBody UserDto userDto) {
+		userService.statusUser(authentication.getName(), userDto.getUsername(), userDto.getUserId(), userDto.getStatus());
+		return new ResponseEntity<String>("User status updated!", HttpStatus.OK);
 	}
 	
 	
