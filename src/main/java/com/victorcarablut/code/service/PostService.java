@@ -63,6 +63,7 @@ public class PostService {
 
 			if (post.getStatus() != null && post.getStatus().equals("active")) {
 				postsAllActive.add(post);
+			}
 
 				// System.out.println(post.getIsActive());
 
@@ -85,7 +86,7 @@ public class PostService {
 
 				post.setLikes(likesDto);
 
-			}
+			
 
 		}
 
