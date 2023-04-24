@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.victorcarablut.code.dto.PostStatusDto;
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.User;
+import com.victorcarablut.code.entity.user.UserBlocked;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
 import com.victorcarablut.code.exceptions.EmailNotExistsException;
 import com.victorcarablut.code.exceptions.EmailNotVerifiedException;
@@ -35,6 +36,7 @@ import com.victorcarablut.code.exceptions.ErrorSendEmailException;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
 import com.victorcarablut.code.exceptions.PasswordNotMatchException;
+import com.victorcarablut.code.exceptions.UserBlockedException;
 import com.victorcarablut.code.exceptions.UsernameAlreadyExistsException;
 import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
 import com.victorcarablut.code.service.UserService;
@@ -88,6 +90,7 @@ public class UserController {
 		responseJSON.put("status_message", "Account with that email doesn't exist.");
 		return responseJSON;
 	}
+	
 
 	@ExceptionHandler({ EmailWrongCodeException.class })
 	public Map<String, Object> handleWrongEmailCode() {
@@ -170,6 +173,16 @@ public class UserController {
 		}
 	}
 	
+	@GetMapping("/all/blocked")
+	public List<UserBlocked> getAllBlockedUsers(Authentication authentication) {
+		final String userRole = authentication.getAuthorities().toString();
+		if(userRole.contains("ADMIN")) {
+			return userService.findAllBlockedUsers();
+		} else {
+			return null;
+		}
+	}
+	
 	@GetMapping("/{username}")
 	public Optional<User> getUserProfile(@PathVariable("username") String username) {
 		return userService.findUserDetails(username);
@@ -227,6 +240,12 @@ public class UserController {
 	public ResponseEntity<String> statusUser(Authentication authentication, @RequestBody UserDto userDto) {
 		userService.statusUser(authentication.getName(), userDto.getUsername(), userDto.getUserId(), userDto.getStatus());
 		return new ResponseEntity<String>("User status updated!", HttpStatus.OK);
+	}
+	
+	@PostMapping("/role")
+	public ResponseEntity<String> changeUserRole(Authentication authentication, @RequestBody UserDto userDto) {
+		userService.changeUserRole(authentication.getName(), userDto.getUsername(), userDto.getUserId());
+		return new ResponseEntity<String>("User role updated!", HttpStatus.OK);
 	}
 	
 	

@@ -78,6 +78,7 @@ public class PostService {
 					likeDto.setUserId(like.getUser().getId());
 					likeDto.setUserFullName(like.getUser().getFullName());
 					likeDto.setUsername(like.getUser().getUsername());
+					likeDto.setUserProfileImg(like.getUser().getUserProfileImg());
 
 					likesDto.add(likeDto);
 				}
@@ -117,6 +118,7 @@ public class PostService {
 				likeDto.setUserId(like.getUser().getId());
 				likeDto.setUserFullName(like.getUser().getFullName());
 				likeDto.setUsername(like.getUser().getUsername());
+				likeDto.setUserProfileImg(like.getUser().getUserProfileImg());
 
 				likesDto.add(likeDto);
 
@@ -195,7 +197,7 @@ public class PostService {
 
 		postUpdate.setUpdatedDate(LocalDateTime.now());
 		
-		postUpdate.setStatus("pending");
+		// postUpdate.setStatus("pending");
 
 		try {
 			postRepository.save(postUpdate);

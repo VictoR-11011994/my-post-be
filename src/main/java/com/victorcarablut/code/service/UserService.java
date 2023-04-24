@@ -33,7 +33,7 @@ import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.Role;
 import com.victorcarablut.code.entity.user.User;
-
+import com.victorcarablut.code.entity.user.UserBlocked;
 import com.victorcarablut.code.exceptions.EmailAlreadyExistsException;
 import com.victorcarablut.code.exceptions.EmailNotExistsException;
 import com.victorcarablut.code.exceptions.EmailNotVerifiedException;
@@ -42,8 +42,10 @@ import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
 import com.victorcarablut.code.exceptions.PasswordNotMatchException;
+import com.victorcarablut.code.exceptions.UserBlockedException;
 import com.victorcarablut.code.exceptions.UsernameAlreadyExistsException;
 import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
+import com.victorcarablut.code.repository.UserBlockedRepository;
 import com.victorcarablut.code.repository.UserRepository;
 import com.victorcarablut.code.exceptions.EmailWrongCodeException;
 import com.victorcarablut.code.security.jwt.JwtService;
@@ -56,6 +58,9 @@ public class UserService {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private UserBlockedRepository userBlockedRepository;
 
 	// @Autowired
 	// private EmailService emailService;
@@ -92,6 +97,10 @@ public class UserService {
 		return userRepository.existsUserByEmail(email);
 	}
 
+	public boolean existsUserBlockedByEmail(String email) {
+		return userBlockedRepository.existsUserBlockedByEmail(email);
+	}
+
 	// find only username
 	public boolean existsUserByUsername(String username) {
 		return userRepository.existsUserByUsername(username);
@@ -105,6 +114,11 @@ public class UserService {
 	// find all users
 	public List<User> findAllUsers() {
 		return userRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+	}
+
+	// find all users (blocked)
+	public List<UserBlocked> findAllBlockedUsers() {
+		return userBlockedRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
 	}
 
 	// check email input validity
@@ -138,7 +152,7 @@ public class UserService {
 
 		if (emailInputIsValid(userDto.getEmail())) {
 
-			if (existsUserByEmail(userDto.getEmail())) {
+			if (existsUserByEmail(userDto.getEmail()) || existsUserBlockedByEmail(userDto.getEmail())) {
 				throw new EmailAlreadyExistsException();
 			} else {
 
@@ -195,30 +209,36 @@ public class UserService {
 
 		if (emailInputIsValid(userDto.getEmail())) {
 
-			if (existsUserByEmail(userDto.getEmail())) {
+			if (existsUserBlockedByEmail(userDto.getEmail())) {
+				throw new UserBlockedException();
+			} else {
 
-				User user = userRepository.findByEmail(userDto.getEmail());
+				if (existsUserByEmail(userDto.getEmail())) {
 
-				if (user.isEnabled()) {
+					User user = userRepository.findByEmail(userDto.getEmail());
 
-					if (verifyAuth(user.getUsername(), userDto.getPassword())) {
+					if (user.isEnabled()) {
 
-						final String token = jwtService
-								.generateToken(userRepository.findByUsername(user.getUsername()).orElseThrow());
-						TokenDto jwtToken = new TokenDto("token", token);
+						if (verifyAuth(user.getUsername(), userDto.getPassword())) {
 
-						tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
+							final String token = jwtService
+									.generateToken(userRepository.findByUsername(user.getUsername()).orElseThrow());
+							TokenDto jwtToken = new TokenDto("token", token);
+
+							tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
+
+						} else {
+							throw new WrongEmailOrPasswordException();
+						}
 
 					} else {
-						throw new WrongEmailOrPasswordException();
+						throw new EmailNotVerifiedException();
 					}
 
 				} else {
-					throw new EmailNotVerifiedException();
+					throw new EmailNotExistsException();
 				}
 
-			} else {
-				throw new EmailNotExistsException();
 			}
 
 		} else {
@@ -265,7 +285,7 @@ public class UserService {
 						SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 						simpleMailMessage.setFrom(senderEmailNoReply);
 						simpleMailMessage.setTo(email);
-						simpleMailMessage.setSubject("Verification Code (no-reply)");
+						simpleMailMessage.setSubject("myPost - Verification Code (no-reply)");
 						simpleMailMessage.setText(user.getVerificationCode().toString());
 
 						javaMailSenderNoReply.send(simpleMailMessage);
@@ -304,7 +324,7 @@ public class UserService {
 						SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 						simpleMailMessage.setFrom(senderEmailNoReply);
 						simpleMailMessage.setTo(newEmail);
-						simpleMailMessage.setSubject("Update Email - Verification Code (no-reply)");
+						simpleMailMessage.setSubject("myPost - Update Email - Verification Code (no-reply)");
 						simpleMailMessage.setText(user.getVerificationCode().toString());
 
 						javaMailSenderNoReply.send(simpleMailMessage);
@@ -312,6 +332,36 @@ public class UserService {
 					} catch (Exception e) {
 						throw new ErrorSendEmailException();
 					}
+				}
+
+			} else {
+				throw new EmailNotExistsException();
+			}
+
+		} else {
+			throw new InvalidEmailException();
+		}
+	}
+
+	// after new user registered and verified code from email send an email
+	// confirmation with Account created successfully
+	public void sendEmailAccountCreated(String email) {
+
+		if (emailInputIsValid(email)) {
+
+			if (existsUserByEmail(email)) {
+
+				try {
+					SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+					simpleMailMessage.setFrom(senderEmailNoReply);
+					simpleMailMessage.setTo(email);
+					simpleMailMessage.setSubject("myPost - Account Created - (no-reply)");
+					simpleMailMessage.setText("Your account has been successfully created on myPost/n Thank You!");
+
+					javaMailSenderNoReply.send(simpleMailMessage);
+
+				} catch (Exception e) {
+					throw new ErrorSendEmailException();
 				}
 
 			} else {
@@ -741,15 +791,69 @@ public class UserService {
 
 		if (existsUserById(actualUserId)) {
 
-			User userAdmin = userRepository.findUserByUsername(actualUser); // actualUser => username from: authentication.getName()
-			
+			User userAdmin = userRepository.findUserByUsername(actualUser); // actualUser => username from:
+																			// authentication.getName()
+
 			User user = userRepository.findUserByUsername(username);
 
 			final String userRole = userAdmin.getAuthorities().toString();
 
 			if (userRole.contains("ADMIN")) {
 
-				user.setStatus(status);
+				if (status.equals("blocked")) {
+					// delete user and save in separated table the user data as a history
+					UserBlocked blockUser = new UserBlocked();
+					blockUser.setUserId(user.getId());
+					blockUser.setFullName(user.getFullName());
+					blockUser.setUsername(user.getUsername());
+					blockUser.setEmail(user.getEmail());
+					blockUser.setRegisteredDate(user.getRegisteredDate());
+					blockUser.setBlockedDate(LocalDateTime.now());
+
+					try {
+						// Warning all data will be deleted
+						userRepository.deleteById(user.getId());
+
+						// save data: users_blocked
+						userBlockedRepository.save(blockUser);
+
+					} catch (Exception e) {
+						throw new ErrorSaveDataToDatabaseException();
+					}
+
+				} else {
+					user.setStatus(status);
+
+					try {
+						userRepository.save(user);
+					} catch (Exception e) {
+						throw new ErrorSaveDataToDatabaseException();
+					}
+				}
+
+			} else {
+				throw new GenericException();
+			}
+
+		} else {
+			throw new GenericException();
+		}
+	}
+
+	// admin only
+	public void changeUserRole(String actualUser, String username, Long actualUserId) {
+
+		if (existsUserById(actualUserId)) {
+
+			User userAdmin = userRepository.findUserByUsername(actualUser); // actualUser => username from:
+																			// authentication.getName()
+			User user = userRepository.findUserByUsername(username);
+
+			final String userRole = userAdmin.getAuthorities().toString();
+
+			if (userRole.contains("ADMIN")) {
+
+				user.setRole(Role.ADMIN);
 
 				try {
 					userRepository.save(user);

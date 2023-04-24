@@ -14,4 +14,5 @@ public class LikeDto {
 	private Long userId;
 	private String userFullName;
 	private String username;
+	private byte[] userProfileImg;
 }

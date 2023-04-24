@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
 import com.victorcarablut.code.exceptions.PasswordNotMatchException;
+import com.victorcarablut.code.exceptions.UserBlockedException;
 import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
 import com.victorcarablut.code.service.UserService;
 import com.victorcarablut.code.exceptions.EmailWrongCodeException;
@@ -89,6 +90,14 @@ public class AuthenticationController {
 		responseJSON.put("status_message", "Account with that email doesn't exist.");
 		return responseJSON;
 	}
+	
+	@ExceptionHandler({ UserBlockedException.class })
+	public Map<String, Object> handleUserBlocked() {
+		Map<String, Object> responseJSON = new LinkedHashMap<>();
+		responseJSON.put("status_code", 12);
+		responseJSON.put("status_message", "Account is blocked because rules were violated.");
+		return responseJSON;
+	}
 
 	@ExceptionHandler({ EmailWrongCodeException.class })
 	public Map<String, Object> handleWrongEmailCode() {
@@ -145,7 +154,7 @@ public class AuthenticationController {
 		return new ResponseEntity<String>("An email with a verification code was sent to: " + email.substring(0, 5)
 				+ "**********" + " | (no-reply)", HttpStatus.OK);
 	}
-	
+
 	@PostMapping("/new-email/code/send")
 	public ResponseEntity<String> sendEmailCodeNoReplyNewEmail(@RequestBody LinkedHashMap<String, String> data) {
 		final String oldEmail = data.get("old_email");
@@ -157,7 +166,7 @@ public class AuthenticationController {
 
 	@Autowired
 	@Qualifier("javaMailSenderPrimary")
-	private JavaMailSender javaMailSender2;
+	private JavaMailSender javaMailSender;
 
 	// test OK
 	@PostMapping("/email/code/primary")
@@ -170,7 +179,7 @@ public class AuthenticationController {
 			simpleMailMessage.setSubject("My Post - primary");
 			simpleMailMessage.setText("000");
 
-			javaMailSender2.send(simpleMailMessage);
+			javaMailSender.send(simpleMailMessage);
 			System.out.println("Email sended (primary)");
 
 		} catch (Exception e) {
@@ -180,6 +189,13 @@ public class AuthenticationController {
 		}
 
 		return new ResponseEntity<String>("Code sended on email (primary)", HttpStatus.OK);
+	}
+
+	// Account created successfully
+	@PostMapping("/created/email/info")
+	public ResponseEntity<String> sendEmailAccountCreated(@RequestBody LinkedHashMap<String, String> data) {
+		userService.sendEmailAccountCreated(data.get("email"));
+		return new ResponseEntity<String>("Account successfully created! (primary)", HttpStatus.OK);
 	}
 
 	@PostMapping("/email/code/verify")
@@ -201,7 +217,6 @@ public class AuthenticationController {
 		userService.recoverUserPassword(data.get("email"), data.get("code"), data.get("password"));
 		return new ResponseEntity<String>(HttpStatus.OK);
 	}
-
 
 	// auth
 	@PostMapping("/login")
