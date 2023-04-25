@@ -159,33 +159,6 @@ public class AuthenticationController {
 				+ "**********" + " | (no-reply)", HttpStatus.OK);
 	}
 
-	@Autowired
-	@Qualifier("javaMailSenderPrimary")
-	private JavaMailSender javaMailSender;
-
-	// test sending email with another host email (works OK)
-	@PostMapping("/email/code/primary")
-	public ResponseEntity<String> sendEmailCodePrimary(@RequestBody LinkedHashMap<String, String> data) {
-
-		try {
-			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-			simpleMailMessage.setFrom("my-post@code.victorcarablut.com");
-			simpleMailMessage.setTo("mail@mail.com");
-			simpleMailMessage.setSubject("My Post - primary");
-			simpleMailMessage.setText("000");
-
-			javaMailSender.send(simpleMailMessage);
-			// System.out.println("Email sended (primary)");
-
-		} catch (Exception e) {
-			// System.out.println("Error sending Email (primary)");
-			throw new GenericException();
-
-		}
-
-		return new ResponseEntity<String>("Code sended on email (primary)", HttpStatus.OK);
-	}
-
 	// Account created successfully
 	@PostMapping("/created/email/info")
 	public ResponseEntity<String> sendEmailAccountCreated(@RequestBody LinkedHashMap<String, String> data) {
