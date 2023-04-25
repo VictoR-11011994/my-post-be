@@ -230,5 +230,11 @@ public class UserController {
 		return new ResponseEntity<String>("User role updated!", HttpStatus.OK);
 	}
 	
+	@PostMapping("/account/delete")
+	public ResponseEntity<String> deleteAccount(Authentication authentication, @RequestBody UserDto userDto) {
+		userService.deleteAccount(authentication.getName(), userDto.getPassword(), userDto.getUserId());
+		return new ResponseEntity<String>("Account Deleted!", HttpStatus.OK);
+	}
+	
 	
 }

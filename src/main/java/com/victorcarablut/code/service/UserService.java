@@ -75,6 +75,9 @@ public class UserService {
 	@Qualifier("javaMailSenderNoReply")
 	private JavaMailSender javaMailSenderNoReply;
 
+	@Value("${mail.username.primary}")
+	private String senderEmailPrimary;
+
 	@Value("${mail.username.no-reply}")
 	private String senderEmailNoReply;
 
@@ -282,7 +285,10 @@ public class UserService {
 						simpleMailMessage.setFrom(senderEmailNoReply);
 						simpleMailMessage.setTo(email);
 						simpleMailMessage.setSubject("myPost - Verification Code");
-						simpleMailMessage.setText("Your verification code:" + "\n" + user.getVerificationCode().toString() + "\n\n" + "Please do not share this code with anyone." + "\n\n\n" + "This is an automated message, do not reply.");
+						simpleMailMessage
+								.setText("Your verification code:" + "\n" + user.getVerificationCode().toString()
+										+ "\n\n" + "Please do not share this code with anyone." + "\n\n\n"
+										+ "This is an automated message, do not reply.");
 
 						javaMailSenderNoReply.send(simpleMailMessage);
 
@@ -321,7 +327,12 @@ public class UserService {
 						simpleMailMessage.setFrom(senderEmailNoReply);
 						simpleMailMessage.setTo(newEmail);
 						simpleMailMessage.setSubject("myPost - Update Email - Verification Code");
-						simpleMailMessage.setText("You received this email because a request was made to update the old email account with a new one." + "\n\n\n" + "Your verification code:" + "\n" + user.getVerificationCode().toString() + "\n\n" + "Please do not share this code with anyone." + "\n\n\n" + "This is an automated message, do not reply.");
+						simpleMailMessage.setText(
+								"You received this email because a request was made to update the old email account with a new one."
+										+ "\n\n\n" + "Your verification code:" + "\n"
+										+ user.getVerificationCode().toString() + "\n\n"
+										+ "Please do not share this code with anyone." + "\n\n\n"
+										+ "This is an automated message, do not reply.");
 
 						javaMailSenderNoReply.send(simpleMailMessage);
 
@@ -349,12 +360,13 @@ public class UserService {
 
 				try {
 					SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-					simpleMailMessage.setFrom(senderEmailNoReply);
+					simpleMailMessage.setFrom(senderEmailPrimary);
 					simpleMailMessage.setTo(email);
 					simpleMailMessage.setSubject("myPost - Account Created");
-					simpleMailMessage.setText("Your account has been successfully created on myPost" + "\n\n\n" + "This is an automated message, do not reply." + "\n\n" + "Thank You!");
+					simpleMailMessage.setText("Welcome to myPost" + "\n\n\n"
+							+ "Your account has been successfully created." + "\n\n" + "Thank You!");
 
-					javaMailSenderNoReply.send(simpleMailMessage);
+					javaMailSenderPrimary.send(simpleMailMessage);
 
 				} catch (Exception e) {
 					throw new ErrorSendEmailException();
@@ -368,7 +380,6 @@ public class UserService {
 			throw new InvalidEmailException();
 		}
 	}
-
 
 	// verify code received on email
 	public boolean verifyEmailCode(String email, String code) {
@@ -544,7 +555,7 @@ public class UserService {
 							}
 
 						} else {
-			
+
 							throw new WrongEmailOrPasswordException();
 						}
 
@@ -802,15 +813,15 @@ public class UserService {
 		if (existsUserById(actualUserId)) {
 
 			User userAdmin = userRepository.findUserByUsername(actualUserUsername); // actualUser => username from:
-																			// authentication.getName()
+			// authentication.getName()
 			User user = userRepository.findUserByUsername(username);
 
 			final String userRole = userAdmin.getAuthorities().toString();
 
 			if (userRole.contains("ADMIN")) {
-				
+
 				if (verifyAuth(actualUserUsername, password)) {
-					
+
 					user.setRole(Role.ADMIN);
 
 					try {
@@ -818,14 +829,36 @@ public class UserService {
 					} catch (Exception e) {
 						throw new ErrorSaveDataToDatabaseException();
 					}
-					
-				} else {
-					throw new GenericException();
-				}
 
+				} else {
+					throw new WrongEmailOrPasswordException();
+				}
 
 			} else {
 				throw new GenericException();
+			}
+
+		} else {
+			throw new GenericException();
+		}
+	}
+
+	public void deleteAccount(String username, String password, Long userId) {
+
+		if (existsUserById(userId)) {
+
+			User user = userRepository.findUserByUsername(username);
+
+			if (verifyAuth(username, password)) {
+
+				try {
+					userRepository.deleteById(user.getId());
+				} catch (Exception e) {
+					throw new ErrorSaveDataToDatabaseException();
+				}
+
+			} else {
+				throw new WrongEmailOrPasswordException();
 			}
 
 		} else {
