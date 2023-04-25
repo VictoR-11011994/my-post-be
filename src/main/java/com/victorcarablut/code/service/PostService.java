@@ -3,18 +3,12 @@ package com.victorcarablut.code.service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.yaml.snakeyaml.util.ArrayUtils;
 
 import com.victorcarablut.code.dto.LikeDto;
 import com.victorcarablut.code.entity.post.Like;
@@ -23,7 +17,6 @@ import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.exceptions.EmailNotExistsException;
 import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 import com.victorcarablut.code.exceptions.GenericException;
-import com.victorcarablut.code.exceptions.InvalidEmailException;
 import com.victorcarablut.code.exceptions.PostMaxLimitException;
 import com.victorcarablut.code.repository.LikeRepository;
 import com.victorcarablut.code.repository.PostRepository;
@@ -64,8 +57,6 @@ public class PostService {
 			if (post.getStatus() != null && post.getStatus().equals("active")) {
 				postsAllActive.add(post);
 			}
-
-				// System.out.println(post.getIsActive());
 
 				List<Like> likes = likeRepository.findAllByPostId(post.getId());
 
@@ -137,7 +128,6 @@ public class PostService {
 
 			List<Post> posts = postRepository.findAllByOrderByUserIdDesc(post.getUser().getId());
 
-			// System.out.println(posts.size());
 
 			if (posts.size() >= post.getMaxPostsLimit()) {
 				// max limit
@@ -159,11 +149,9 @@ public class PostService {
 				if (image != null) {
 					if (!image.isEmpty()) {
 
-						// post.setImage(image.getBytes());
 						try {
 							uploadImg(post.getUser().getId(), post.getId(), image);
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
@@ -181,24 +169,20 @@ public class PostService {
 
 		Post postUpdate = postRepository.findPostById(postId);
 
-		// System.out.println("userId: " + post.getUser().getId());
-		// System.out.println("postId: " + postId);
 
-		// System.out.println("title: " + post.getTitle());
-		// System.out.println("desc: " + post.getDescription());
-		System.out.println("image: " + post.getImage());
+		// System.out.println("image: " + post.getImage());
 
 		postUpdate.setTitle(post.getTitle());
 		postUpdate.setDescription(post.getDescription());
 
 		if (imageStatus.contains("no-image")) {
 			postUpdate.setImage(null);
-			System.out.println(imageStatus);
+			// System.out.println(imageStatus);
 		}
 
 		postUpdate.setUpdatedDate(LocalDateTime.now());
 		
-		// postUpdate.setStatus("pending");
+		postUpdate.setStatus("pending");
 
 		try {
 			postRepository.save(postUpdate);

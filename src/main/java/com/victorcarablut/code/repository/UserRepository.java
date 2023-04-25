@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -15,8 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Map<String, Object> findByEmailAndReturnOnlyEmail(String email);
 	
 	User findByEmail(String email);
-	//Optional<User> findByEmail(String email);
-	
+
 	User findUserById(Long id);
 	
 	Boolean existsUserById(Long id);
@@ -29,8 +27,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	
 	Optional<User> findUsernameByEmail(String email);
 	
-	// User findByIdAndEmail(Long id, String email);
-	
 	Optional<User> findOneByEmail(String email);
 	
 	Boolean existsUserByEmailAndVerificationCode(String email, Integer code);
@@ -38,9 +34,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	User findByPassword(String password);
 
 	User findUserByUsername(String username);
-
-	
-
 	
 
 }

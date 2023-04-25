@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-// Email Configuration (multiple host)
+// Email Configuration (multiple hosts)
 
 @Configuration
 public class EmailConfig {
@@ -97,26 +97,6 @@ public class EmailConfig {
 	    return mailSender;
 	}
 
-	
-	
-//	@Bean
-//	@Qualifier("secondaryMailSender3")
-//	JavaMailSender getSecondaryJavaMailSender() {
-//	    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-//	    mailSender.setHost("smtp.hostinger.com");
-//	    mailSender.setPort(587);
-//
-//	    mailSender.setUsername("my-post-noreply@code.victorcarablut.com");
-//	    mailSender.setPassword("$NewProjectMyPost-2023-LHU947");
-//
-//	    Properties props = mailSender.getJavaMailProperties();
-//	    props.put("mail.transport.protocol", "smtp");
-//	    props.put("mail.smtp.auth", "true");
-//	    props.put("mail.smtp.starttls.enable", "true");
-//	    //props.put("mail.debug", "true");
-//
-//	    return mailSender;
-//	}
 	
 
 }

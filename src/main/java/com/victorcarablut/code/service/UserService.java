@@ -23,14 +23,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.victorcarablut.code.dto.TokenDto;
 import com.victorcarablut.code.dto.UserDto;
-import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.Role;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.entity.user.UserBlocked;
@@ -61,9 +60,6 @@ public class UserService {
 
 	@Autowired
 	private UserBlockedRepository userBlockedRepository;
-
-	// @Autowired
-	// private EmailService emailService;
 
 	@Autowired
 	private AuthenticationManager authenticationManager;
@@ -373,15 +369,6 @@ public class UserService {
 		}
 	}
 
-//	public void enableUserAccount(UserDto userDto) {
-//		try {
-//			User user = userRepository.findByEmail(userDto.getEmail());
-//			user.setEnabled(true);
-//			userRepository.save(user);
-//		} catch (Exception e) {
-//			throw new ErrorSaveDataToDatabaseException();
-//		}
-//	}
 
 	// verify code received on email
 	public boolean verifyEmailCode(String email, String code) {
@@ -529,7 +516,7 @@ public class UserService {
 		}
 	}
 
-	// // update User (only username)
+	// update User (only username)
 	public void updateUserUsername(String email, String password, String oldUsername, String newUsername) {
 
 		if (emailInputIsValid(email)) {
@@ -557,7 +544,7 @@ public class UserService {
 							}
 
 						} else {
-							// TODO: create exception username
+			
 							throw new WrongEmailOrPasswordException();
 						}
 
@@ -650,36 +637,6 @@ public class UserService {
 
 			if (existsUserByEmail(email)) {
 
-				// TODO: separated method
-//				private String bytesIntoHumanReadable(long bytes) {
-//				    long kilobyte = 1024;
-//				    long megabyte = kilobyte * 1024;
-//				    long gigabyte = megabyte * 1024;
-//				    long terabyte = gigabyte * 1024;
-//
-//				    if ((bytes >= 0) && (bytes < kilobyte)) {
-//				        return bytes + " B";
-//
-//				    } else if ((bytes >= kilobyte) && (bytes < megabyte)) {
-//				        return (bytes / kilobyte) + " KB";
-//
-//				    } else if ((bytes >= megabyte) && (bytes < gigabyte)) {
-//				        return (bytes / megabyte) + " MB";
-//
-//				    } else if ((bytes >= gigabyte) && (bytes < terabyte)) {
-//				        return (bytes / gigabyte) + " GB";
-//
-//				    } else if (bytes >= terabyte) {
-//				        return (bytes / terabyte) + " TB";
-//
-//				    } else {
-//				        return bytes + " Bytes";
-//				    }
-//				}
-//				
-				// final String userImgBase64 = userDto.getUserProfileImg();
-				// final byte[] decodeUserImgBase64 = Base64.getDecoder().decode(userImgBase64);
-				// final long imgSize = decodeUserImgBase64.length;
 				byte[] decodeUserImgBase64 = null;
 				try {
 					decodeUserImgBase64 = file.getBytes();
@@ -841,25 +798,32 @@ public class UserService {
 	}
 
 	// admin only
-	public void changeUserRole(String actualUser, String username, Long actualUserId) {
+	public void updateUserRole(String actualUserUsername, String username, String password, Long actualUserId) {
 
 		if (existsUserById(actualUserId)) {
 
-			User userAdmin = userRepository.findUserByUsername(actualUser); // actualUser => username from:
+			User userAdmin = userRepository.findUserByUsername(actualUserUsername); // actualUser => username from:
 																			// authentication.getName()
 			User user = userRepository.findUserByUsername(username);
 
 			final String userRole = userAdmin.getAuthorities().toString();
 
 			if (userRole.contains("ADMIN")) {
+				
+				if (verifyAuth(actualUserUsername, password)) {
+					
+					user.setRole(Role.ADMIN);
 
-				user.setRole(Role.ADMIN);
-
-				try {
-					userRepository.save(user);
-				} catch (Exception e) {
-					throw new ErrorSaveDataToDatabaseException();
+					try {
+						userRepository.save(user);
+					} catch (Exception e) {
+						throw new ErrorSaveDataToDatabaseException();
+					}
+					
+				} else {
+					throw new GenericException();
 				}
+
 
 			} else {
 				throw new GenericException();

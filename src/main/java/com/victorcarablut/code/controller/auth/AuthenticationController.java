@@ -3,7 +3,6 @@ package com.victorcarablut.code.controller.auth;
 import java.util.LinkedHashMap;
 
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,12 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,7 +35,6 @@ import com.victorcarablut.code.exceptions.ErrorSendEmailException;
 import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 
 import com.victorcarablut.code.dto.UserDto;
-import com.victorcarablut.code.entity.user.User;
 
 //public access
 
@@ -168,22 +163,22 @@ public class AuthenticationController {
 	@Qualifier("javaMailSenderPrimary")
 	private JavaMailSender javaMailSender;
 
-	// test OK
+	// test sending email with another host email (works OK)
 	@PostMapping("/email/code/primary")
 	public ResponseEntity<String> sendEmailCodePrimary(@RequestBody LinkedHashMap<String, String> data) {
-		// userService.generateEmailCode(data.get("email"));
+
 		try {
 			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 			simpleMailMessage.setFrom("my-post@code.victorcarablut.com");
-			simpleMailMessage.setTo("dibakos701@mirtox.com");
+			simpleMailMessage.setTo("mail@mail.com");
 			simpleMailMessage.setSubject("My Post - primary");
 			simpleMailMessage.setText("000");
 
 			javaMailSender.send(simpleMailMessage);
-			System.out.println("Email sended (primary)");
+			// System.out.println("Email sended (primary)");
 
 		} catch (Exception e) {
-			System.out.println("Error sending Email (primary)");
+			// System.out.println("Error sending Email (primary)");
 			throw new GenericException();
 
 		}
@@ -204,11 +199,6 @@ public class AuthenticationController {
 		return new ResponseEntity<String>("Code verified!", HttpStatus.OK);
 	}
 
-//	@PostMapping("/password/update")
-//	public ResponseEntity<String> updateUserPassword(@RequestBody UserDto userDto) {
-//		 userService.resetUserPassword(userDto);
-//		 return new ResponseEntity<String>(HttpStatus.OK);
-//	}
 
 	// 1) generate & send code on email
 	// 2) enter code & new password

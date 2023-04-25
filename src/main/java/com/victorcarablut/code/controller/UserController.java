@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.victorcarablut.code.dto.PostStatusDto;
 import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.entity.user.UserBlocked;
@@ -36,7 +34,6 @@ import com.victorcarablut.code.exceptions.ErrorSendEmailException;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.InvalidEmailException;
 import com.victorcarablut.code.exceptions.PasswordNotMatchException;
-import com.victorcarablut.code.exceptions.UserBlockedException;
 import com.victorcarablut.code.exceptions.UsernameAlreadyExistsException;
 import com.victorcarablut.code.exceptions.WrongEmailOrPasswordException;
 import com.victorcarablut.code.service.UserService;
@@ -145,21 +142,6 @@ public class UserController {
 	@GetMapping("/details")
 	public Optional<User> getUserDetails(Authentication authentication) {
 
-		// System.out.println(authentication.getName());
-		// System.out.println(authentication.getAuthorities());
-
-		// final Optional<User> fullName =
-		// userService.findUserDetails(user.getFullName().toString());
-		// final String username = authentication.getName();
-		// final String email = "";
-		// final String role = authentication.getAuthorities();
-
-		// TokenDto jwtToken = new TokenDto("token", token);
-
-		// Map<Object, String> tokenJSON = new LinkedHashMap<>();
-
-		// tokenJSON.put(jwtToken.getNameVar(), jwtToken.getToken());
-
 		return userService.findUserDetails(authentication.getName());
 	}
 	
@@ -176,6 +158,9 @@ public class UserController {
 	@GetMapping("/all/blocked")
 	public List<UserBlocked> getAllBlockedUsers(Authentication authentication) {
 		final String userRole = authentication.getAuthorities().toString();
+		
+		System.out.println(authentication.getAuthorities());
+		
 		if(userRole.contains("ADMIN")) {
 			return userService.findAllBlockedUsers();
 		} else {
@@ -214,18 +199,15 @@ public class UserController {
 		return new ResponseEntity<String>("Password Updated!", HttpStatus.OK);
 	}
 	
-	// TODO: for ...profile && ...cover image a logic using condition to use one API call (for update and for delete 1+1)
+
 	@PutMapping("/image/update")
 	public ResponseEntity<String> updateUserImg(@RequestParam String filter, @RequestParam String email, @RequestParam("userImg") MultipartFile file) {
-		
 		
 			try {
 				userService.updateUserImg(filter, email, file);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		
 		
 		return new ResponseEntity<String>("Image Updated!", HttpStatus.OK);
 	}
@@ -243,8 +225,8 @@ public class UserController {
 	}
 	
 	@PostMapping("/role")
-	public ResponseEntity<String> changeUserRole(Authentication authentication, @RequestBody UserDto userDto) {
-		userService.changeUserRole(authentication.getName(), userDto.getUsername(), userDto.getUserId());
+	public ResponseEntity<String> updateUserRole(Authentication authentication, @RequestBody UserDto userDto) {
+		userService.updateUserRole(authentication.getName(), userDto.getUsername(), userDto.getPassword(), userDto.getUserId());
 		return new ResponseEntity<String>("User role updated!", HttpStatus.OK);
 	}
 	

@@ -29,8 +29,7 @@ public class SecurityConfiguration {
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		
 		return http
-				// cors().and().csrf().disable() : prevent message error in browser: No 'Access-Control-Allow-Origin'
-				.cors().and().csrf().disable() // (disable if using different authentication mechanism... like jwt)
+				.cors().and().csrf().disable() // prevent message error in browser: No 'Access-Control-Allow-Origin' - (disable if using different authentication mechanism... like jwt)
 				.authorizeHttpRequests()
 				.requestMatchers(LIST_URLS_FREE_ACCESS).permitAll()
 				.anyRequest().authenticated()

@@ -1,19 +1,14 @@
 package com.victorcarablut.code.controller;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,22 +16,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.victorcarablut.code.dto.LikeDto;
 import com.victorcarablut.code.dto.PostStatusDto;
-import com.victorcarablut.code.dto.UserDto;
 import com.victorcarablut.code.entity.post.Like;
 import com.victorcarablut.code.entity.post.Post;
-import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.PostMaxLimitException;
 import com.victorcarablut.code.service.PostService;
-import com.victorcarablut.code.service.UserService;
 
 //private access
 
@@ -76,8 +66,6 @@ public class PostController {
 
 	@GetMapping("/all/{filterBy}")
 	private List<Post> getAllPosts(Authentication authentication, @PathVariable("filterBy") String filter) {
-		// System.out.println(filter);
-		// System.out.println("role: " + authentication.getAuthorities());
 		
 		final String userRole = authentication.getAuthorities().toString();
 		
@@ -91,7 +79,6 @@ public class PostController {
 			// by username only
 			return postService.findAllPostsOwner(filter);
 		}
-	
 		
 	}
 
