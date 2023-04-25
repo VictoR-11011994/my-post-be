@@ -159,7 +159,7 @@ public class UserController {
 	public List<UserBlocked> getAllBlockedUsers(Authentication authentication) {
 		final String userRole = authentication.getAuthorities().toString();
 		
-		System.out.println(authentication.getAuthorities());
+		// System.out.println(authentication.getAuthorities());
 		
 		if(userRole.contains("ADMIN")) {
 			return userService.findAllBlockedUsers();

@@ -24,7 +24,6 @@ public class UserBlocked {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private Long userId;
 	private String fullName;
 	private String username;
 	private String email;

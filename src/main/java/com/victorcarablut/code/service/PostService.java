@@ -182,7 +182,7 @@ public class PostService {
 
 		postUpdate.setUpdatedDate(LocalDateTime.now());
 		
-		postUpdate.setStatus("pending");
+		// postUpdate.setStatus("pending");
 
 		try {
 			postRepository.save(postUpdate);
@@ -251,7 +251,7 @@ public class PostService {
 				imgSizeFile = "NULL";
 			}
 
-			System.out.println(finalImgSize + imgSizeFile + " " + imgType);
+			// System.out.println(finalImgSize + imgSizeFile + " " + imgType);
 
 			// max: 10 MB
 			if ((finalImgSize > 10 && imgSizeFile == "MB") || imgSizeFile == "GB" || imgSizeFile == "TB"

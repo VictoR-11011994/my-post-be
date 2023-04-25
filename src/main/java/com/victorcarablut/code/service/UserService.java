@@ -281,8 +281,8 @@ public class UserService {
 						SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 						simpleMailMessage.setFrom(senderEmailNoReply);
 						simpleMailMessage.setTo(email);
-						simpleMailMessage.setSubject("myPost - Verification Code (no-reply)");
-						simpleMailMessage.setText(user.getVerificationCode().toString());
+						simpleMailMessage.setSubject("myPost - Verification Code");
+						simpleMailMessage.setText("Your verification code:" + "\n" + user.getVerificationCode().toString() + "\n\n" + "Please do not share this code with anyone." + "\n\n\n" + "This is an automated message, do not reply.");
 
 						javaMailSenderNoReply.send(simpleMailMessage);
 
@@ -320,8 +320,8 @@ public class UserService {
 						SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 						simpleMailMessage.setFrom(senderEmailNoReply);
 						simpleMailMessage.setTo(newEmail);
-						simpleMailMessage.setSubject("myPost - Update Email - Verification Code (no-reply)");
-						simpleMailMessage.setText(user.getVerificationCode().toString());
+						simpleMailMessage.setSubject("myPost - Update Email - Verification Code");
+						simpleMailMessage.setText("You received this email because a request was made to update the old email account with a new one." + "\n\n\n" + "Your verification code:" + "\n" + user.getVerificationCode().toString() + "\n\n" + "Please do not share this code with anyone." + "\n\n\n" + "This is an automated message, do not reply.");
 
 						javaMailSenderNoReply.send(simpleMailMessage);
 
@@ -351,8 +351,8 @@ public class UserService {
 					SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 					simpleMailMessage.setFrom(senderEmailNoReply);
 					simpleMailMessage.setTo(email);
-					simpleMailMessage.setSubject("myPost - Account Created - (no-reply)");
-					simpleMailMessage.setText("Your account has been successfully created on myPost/n Thank You!");
+					simpleMailMessage.setSubject("myPost - Account Created");
+					simpleMailMessage.setText("Your account has been successfully created on myPost" + "\n\n\n" + "This is an automated message, do not reply." + "\n\n" + "Thank You!");
 
 					javaMailSenderNoReply.send(simpleMailMessage);
 
@@ -760,7 +760,6 @@ public class UserService {
 				if (status.equals("blocked")) {
 					// delete user and save in separated table the user data as a history
 					UserBlocked blockUser = new UserBlocked();
-					blockUser.setUserId(user.getId());
 					blockUser.setFullName(user.getFullName());
 					blockUser.setUsername(user.getUsername());
 					blockUser.setEmail(user.getEmail());
