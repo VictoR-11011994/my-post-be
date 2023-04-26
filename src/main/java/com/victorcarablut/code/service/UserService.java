@@ -453,9 +453,6 @@ public class UserService {
 
 				user.setUpdatedDate(LocalDateTime.now());
 				
-				// temporary add Admin
-				user.setRole(Role.ADMIN);
-				
 				try {
 					userRepository.save(user);
 				} catch (Exception e) {
