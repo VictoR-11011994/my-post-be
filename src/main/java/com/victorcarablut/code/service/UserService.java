@@ -453,7 +453,7 @@ public class UserService {
 
 				user.setUpdatedDate(LocalDateTime.now());
 				
-				// temporary
+				// temporary add Admin
 				user.setRole(Role.ADMIN);
 				
 				try {
