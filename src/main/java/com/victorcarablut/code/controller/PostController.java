@@ -70,14 +70,15 @@ public class PostController {
 		final String userRole = authentication.getAuthorities().toString();
 		
 		if(filter.equals("admin") && userRole.contains("ADMIN")) {
-			// by all active and non active
-			return postService.findAllPosts(true);
+			// by all active and non active (used in Admin Dashboard)
+			return postService.findAllPosts(true, null);
 		} else if(filter.equals("all")) {
-			// by all active post only
-			return postService.findAllPosts(false);
+			// by all active post only (used in Home Page)
+			return postService.findAllPosts(false, null);
 		} else {
-			// by username only
-			return postService.findAllPostsOwner(filter);
+			// by username only (used is User Profile)
+			// filter --> username
+			return postService.findAllPosts(false, filter);
 		}
 		
 	}
@@ -113,8 +114,8 @@ public class PostController {
 	// ---------- Likes ----------
 	
 	@PostMapping("/like")
-	public ResponseEntity<String> userLike(@RequestBody Like like) {
-		postService.userLike(like);
+	public ResponseEntity<String> postLike(@RequestBody Like like) {
+		postService.postLike(like);
 		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 	

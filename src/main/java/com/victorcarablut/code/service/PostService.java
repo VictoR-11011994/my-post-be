@@ -46,7 +46,7 @@ public class PostService {
 		return userRepository.existsById(id);
 	}
 
-	public List<Post> findAllPosts(Boolean isAdmin) {
+	public List<Post> findAllPosts(Boolean isAdmin, String username) {
 
 		List<Post> postsAll = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
 
@@ -58,39 +58,24 @@ public class PostService {
 				postsAllActive.add(post);
 			}
 
-				List<Like> likes = likeRepository.findAllByPostId(post.getId());
-
-				ArrayList<LikeDto> likesDto = new ArrayList<>();
-
-				for (Like like : likes) {
-
-					LikeDto likeDto = new LikeDto();
-					likeDto.setLikeId(like.getId());
-					likeDto.setPostId(like.getPost().getId());
-					likeDto.setUserId(like.getUser().getId());
-					likeDto.setUserFullName(like.getUser().getFullName());
-					likeDto.setUsername(like.getUser().getUsername());
-					likeDto.setUserProfileImg(like.getUser().getUserProfileImg());
-
-					likesDto.add(likeDto);
-				}
-
-				post.setLikes(likesDto);
-
+				
+			post.setLikes(getAllLikesPostsById(post.getId()));
 			
 
 		}
 
-		if (isAdmin) {
+		if (isAdmin && username == null) {
 			// filter on frontend to get only active and non active
 			return postsAll;
-		} else {
+		} else if (!isAdmin && username == null){
 			return postsAllActive;
+		} else {
+			return getAllPostsOwner(username);
 		}
 
 	}
 
-	public List<Post> findAllPostsOwner(String username) {
+	public List<Post> getAllPostsOwner(String username) {
 
 		User user = userRepository.findUserByUsername(username);
 
@@ -98,28 +83,33 @@ public class PostService {
 
 		for (Post post : posts) {
 
-			List<Like> likes = likeRepository.findAllByPostId(post.getId());
 
-			ArrayList<LikeDto> likesDto = new ArrayList<>();
-
-			for (Like like : likes) {
-
-				LikeDto likeDto = new LikeDto();
-				likeDto.setLikeId(like.getId());
-				likeDto.setPostId(like.getPost().getId());
-				likeDto.setUserId(like.getUser().getId());
-				likeDto.setUserFullName(like.getUser().getFullName());
-				likeDto.setUsername(like.getUser().getUsername());
-				likeDto.setUserProfileImg(like.getUser().getUserProfileImg());
-
-				likesDto.add(likeDto);
-
-			}
-
-			post.setLikes(likesDto);
+			post.setLikes(getAllLikesPostsById(post.getId()));
 		}
 
 		return posts;
+	}
+	
+	public ArrayList<LikeDto> getAllLikesPostsById(Long postId) {
+		
+		List<Like> likes = likeRepository.findAllByPostId(postId);
+
+		ArrayList<LikeDto> likesDto = new ArrayList<>();
+
+		for (Like like : likes) {
+
+			LikeDto likeDto = new LikeDto();
+			likeDto.setLikeId(like.getId());
+			likeDto.setPostId(like.getPost().getId());
+			likeDto.setUserId(like.getUser().getId());
+			likeDto.setUserFullName(like.getUser().getFullName());
+			likeDto.setUsername(like.getUser().getUsername());
+			likeDto.setUserProfileImg(like.getUser().getUserProfileImg());
+
+			likesDto.add(likeDto);
+
+		}
+		return likesDto;
 	}
 
 	public void createPost(Post post, MultipartFile image) {
@@ -317,7 +307,7 @@ public class PostService {
 
 	// ---------- Likes ----------
 
-	public void userLike(Like like) {
+	public void postLike(Like like) {
 
 		if (!likeRepository.existsPostByPostIdAndUserId(like.getPost().getId(), like.getUser().getId())) {
 
