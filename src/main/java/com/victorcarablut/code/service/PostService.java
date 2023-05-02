@@ -3,7 +3,11 @@ package com.victorcarablut.code.service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -46,7 +50,9 @@ public class PostService {
 		return userRepository.existsById(id);
 	}
 
-	public List<Post> findAllPosts(Boolean isAdmin, String username) {
+	public List<Post> findAllPosts(Boolean isAdmin, String currentUsernameFromToken, String username) {
+
+		final Long currentUserId = userRepository.findUserIdByUsernameAndReturnOnlyUserId(currentUsernameFromToken);
 
 		List<Post> postsAll = postRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
 
@@ -58,66 +64,72 @@ public class PostService {
 				postsAllActive.add(post);
 			}
 
-				
-			post.setLikes(getAllLikesPostsById(post.getId()));
+			if (likeRepository.existsPostByPostIdAndUserId(post.getId(), currentUserId)) {
+				post.setIsCurrentUserLikePost(true);
+			} else {
+				post.setIsCurrentUserLikePost(false);
+			}
+
+			List<Like> likes = likeRepository.findAllByPostId(post.getId());
+
+
+			post.setTotalLikes(likes.size());
 			
+			try {
+				postRepository.save(post);
+			} catch (Exception e) {
+				throw new ErrorSaveDataToDatabaseException();
+			}
+
 
 		}
 
 		if (isAdmin && username == null) {
 			// filter on frontend to get only active and non active
 			return postsAll;
-		} else if (!isAdmin && username == null){
+		} else if (!isAdmin && username == null) {
 			return postsAllActive;
 		} else {
-			return getAllPostsOwner(username);
+			return getAllPostsOwner(currentUserId, username);
+
 		}
 
 	}
 
-	public List<Post> getAllPostsOwner(String username) {
+	public List<Post> getAllPostsOwner(Long currentUserId, String username) {
 
-		User user = userRepository.findUserByUsername(username);
+		final Long userId = userRepository.findUserIdByUsernameAndReturnOnlyUserId(username);
 
-		List<Post> posts = postRepository.findAllByOrderByUserIdDesc(user.getId());
+		List<Post> posts = postRepository.findAllByOrderByUserIdDesc(userId);
 
 		for (Post post : posts) {
 
+			if (likeRepository.existsPostByPostIdAndUserId(post.getId(), currentUserId)) {
+				post.setIsCurrentUserLikePost(true);
+			} else {
+				post.setIsCurrentUserLikePost(false);
+			}
 
-			post.setLikes(getAllLikesPostsById(post.getId()));
+			List<Like> likes = likeRepository.findAllByPostId(post.getId());
+			post.setTotalLikes(likes.size());
+			
+			try {
+				postRepository.save(post);
+			} catch (Exception e) {
+				throw new ErrorSaveDataToDatabaseException();
+			}
+
 		}
 
 		return posts;
 	}
-	
-	public ArrayList<LikeDto> getAllLikesPostsById(Long postId) {
-		
-		List<Like> likes = likeRepository.findAllByPostId(postId);
 
-		ArrayList<LikeDto> likesDto = new ArrayList<>();
-
-		for (Like like : likes) {
-
-			LikeDto likeDto = new LikeDto();
-			likeDto.setLikeId(like.getId());
-			likeDto.setPostId(like.getPost().getId());
-			likeDto.setUserId(like.getUser().getId());
-			likeDto.setUserFullName(like.getUser().getFullName());
-			likeDto.setUsername(like.getUser().getUsername());
-			likeDto.setUserProfileImg(like.getUser().getUserProfileImg());
-
-			likesDto.add(likeDto);
-
-		}
-		return likesDto;
-	}
 
 	public void createPost(Post post, MultipartFile image) {
 
 		if (existsUserByEmail(post.getUser().getEmail())) {
 
 			List<Post> posts = postRepository.findAllByOrderByUserIdDesc(post.getUser().getId());
-
 
 			if (posts.size() >= post.getMaxPostsLimit()) {
 				// max limit
@@ -159,7 +171,6 @@ public class PostService {
 
 		Post postUpdate = postRepository.findPostById(postId);
 
-
 		// System.out.println("image: " + post.getImage());
 
 		postUpdate.setTitle(post.getTitle());
@@ -171,7 +182,7 @@ public class PostService {
 		}
 
 		postUpdate.setUpdatedDate(LocalDateTime.now());
-		
+
 		// postUpdate.setStatus("pending");
 
 		try {
@@ -307,7 +318,34 @@ public class PostService {
 
 	// ---------- Likes ----------
 
+	public ArrayList<LikeDto> findAllPostLikes(Long postId) {
+
+		List<Like> likes = likeRepository.findAllByPostId(postId);
+
+		ArrayList<LikeDto> likesDto = new ArrayList<>();
+
+
+		for (Like like : likes) {
+
+			LikeDto likeDto = new LikeDto();
+			likeDto.setLikeId(like.getId());
+			likeDto.setPostId(like.getPost().getId());
+			likeDto.setUserId(like.getUser().getId());
+			likeDto.setUserFullName(like.getUser().getFullName());
+			likeDto.setUsername(like.getUser().getUsername());
+			likeDto.setUserProfileImg(like.getUser().getUserProfileImg());
+
+			likesDto.add(likeDto);
+
+
+		}
+		return likesDto;
+
+	}
+
 	public void postLike(Like like) {
+		
+		// only a owner of post can put Like to a post while is on "pending" status, other users only if it is active
 
 		if (!likeRepository.existsPostByPostIdAndUserId(like.getPost().getId(), like.getUser().getId())) {
 

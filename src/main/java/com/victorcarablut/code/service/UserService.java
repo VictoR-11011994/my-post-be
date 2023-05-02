@@ -5,7 +5,6 @@ import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -652,7 +651,6 @@ public class UserService {
 				try {
 					decodeUserImgBase64 = file.getBytes();
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				final long imgSize = decodeUserImgBase64.length;

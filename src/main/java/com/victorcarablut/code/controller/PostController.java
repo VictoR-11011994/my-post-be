@@ -1,8 +1,10 @@
 package com.victorcarablut.code.controller;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,9 +22,11 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.victorcarablut.code.dto.LikeDto;
 import com.victorcarablut.code.dto.PostStatusDto;
 import com.victorcarablut.code.entity.post.Like;
 import com.victorcarablut.code.entity.post.Post;
+import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.PostMaxLimitException;
@@ -64,21 +68,50 @@ public class PostController {
 	}
 
 
-	@GetMapping("/all/{filterBy}")
-	private List<Post> getAllPosts(Authentication authentication, @PathVariable("filterBy") String filter) {
+//	@GetMapping("/all/{filterBy}")
+//	private List<Post> getAllPosts(Authentication authentication, @PathVariable("filterBy") String filter) {
+//		
+//		final String userRole = authentication.getAuthorities().toString();
+//		
+//		if(filter.equals("admin") && userRole.contains("ADMIN")) {
+//			// by all active and non active (used in Admin Dashboard)
+//			return postService.findAllPosts(true, null);
+//		} else if(filter.equals("all")) {
+//			// by all active post only (used in Home Page)
+//			return postService.findAllPosts(false, null);
+//		} else {
+//			// by username only (used is User Profile)
+//			// filter --> username
+//			return postService.findAllPosts(false, filter);
+//		}
+//		
+//	}
+	
+	@PostMapping("/find")
+	private List<Post> getAllPosts(Authentication authentication, @RequestBody LinkedHashMap<String, String> data) {
 		
-		final String userRole = authentication.getAuthorities().toString();
+		//final Long actualUserId = Long.valueOf(data.get("actualUserId"));
 		
-		if(filter.equals("admin") && userRole.contains("ADMIN")) {
-			// by all active and non active (used in Admin Dashboard)
-			return postService.findAllPosts(true, null);
-		} else if(filter.equals("all")) {
+		// filter = active | admin | username (victor.carablut)
+		
+		final String filter = data.get("filter");
+		final String currentUsernameFromToken = authentication.getName();
+		
+		//System.out.println(actualUsernameToken);	
+		
+		final String userRoleToken = authentication.getAuthorities().toString();
+		
+		if(filter.equals("admin") && userRoleToken.contains("ADMIN")) {
+			// by all active and non active, admin can see everything (used in Admin Dashboard)
+			return postService.findAllPosts(true, currentUsernameFromToken, null);
+		} else if(filter.equals("active")) {
 			// by all active post only (used in Home Page)
-			return postService.findAllPosts(false, null);
+			return postService.findAllPosts(false, currentUsernameFromToken, null);
 		} else {
 			// by username only (used is User Profile)
-			// filter --> username
-			return postService.findAllPosts(false, filter);
+			// filter can contain also --> username
+			// if current username = username of profile visit page show all (active and non active)
+			return postService.findAllPosts(false, currentUsernameFromToken, filter);
 		}
 		
 	}
@@ -112,6 +145,11 @@ public class PostController {
 	
 	
 	// ---------- Likes ----------
+	
+	@PostMapping("/like/all")
+	public ArrayList<LikeDto> getAllPostLikes(@RequestBody LikeDto likeDto) {
+      return postService.findAllPostLikes(likeDto.getPostId());
+	}
 	
 	@PostMapping("/like")
 	public ResponseEntity<String> postLike(@RequestBody Like like) {
