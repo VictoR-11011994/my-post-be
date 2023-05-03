@@ -77,8 +77,10 @@ public class PostService {
 			}
 
 			List<Like> likes = likeRepository.findAllByPostId(post.getId());
-
 			post.setTotalLikes(likes.size());
+			
+			List<Comment> comments = commentRepository.findAllByPostId(post.getId());
+			post.setTotalComments(comments.size());
 
 			try {
 				postRepository.save(post);
@@ -116,6 +118,9 @@ public class PostService {
 
 			List<Like> likes = likeRepository.findAllByPostId(post.getId());
 			post.setTotalLikes(likes.size());
+			
+			List<Comment> comments = commentRepository.findAllByPostId(post.getId());
+			post.setTotalComments(comments.size());
 
 			try {
 				postRepository.save(post);

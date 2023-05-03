@@ -82,5 +82,7 @@ public class Post {
 	private String status; // active - pending - blocked
 	
 	private Integer totalLikes;
+	
+	private Integer totalComments;
 
 }
