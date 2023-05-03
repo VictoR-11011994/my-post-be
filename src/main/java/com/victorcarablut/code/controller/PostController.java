@@ -22,8 +22,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.victorcarablut.code.dto.CommentDto;
 import com.victorcarablut.code.dto.LikeDto;
 import com.victorcarablut.code.dto.PostStatusDto;
+import com.victorcarablut.code.entity.post.Comment;
 import com.victorcarablut.code.entity.post.Like;
 import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.User;
@@ -155,6 +157,31 @@ public class PostController {
 	public ResponseEntity<String> postLike(@RequestBody Like like) {
 		postService.postLike(like);
 		return new ResponseEntity<String>(HttpStatus.OK);
+	}
+	
+	// ---------- Comments ----------
+	
+	@PostMapping("/comment/all")
+	public ArrayList<CommentDto> getAllPostComments(@RequestBody CommentDto commentDto) {
+      return postService.findAllPostComments(commentDto.getPostId());
+	}
+	
+	@PostMapping("/comment/add")
+	public ResponseEntity<String> postAddComment(@RequestBody Comment comment) {
+		postService.addComment(comment);
+		return new ResponseEntity<String>("Comment Added!", HttpStatus.OK);
+	}
+	
+	@PutMapping("/comment/update")
+	public ResponseEntity<String> postUpdateComment(@RequestBody CommentDto commentDto) {
+		postService.updateComment(commentDto);
+		return new ResponseEntity<String>("Comment Updated!", HttpStatus.OK);
+	}
+	
+	@PostMapping("/comment/delete")
+	public ResponseEntity<String> postCommentDelete(@RequestBody CommentDto commentDto) {
+		postService.deleteComment(commentDto);
+		return new ResponseEntity<String>("Comment Deleted!", HttpStatus.OK);
 	}
 	
 	

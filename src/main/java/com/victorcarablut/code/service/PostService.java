@@ -14,7 +14,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.victorcarablut.code.dto.CommentDto;
 import com.victorcarablut.code.dto.LikeDto;
+import com.victorcarablut.code.entity.post.Comment;
 import com.victorcarablut.code.entity.post.Like;
 import com.victorcarablut.code.entity.post.Post;
 import com.victorcarablut.code.entity.user.User;
@@ -22,6 +24,7 @@ import com.victorcarablut.code.exceptions.EmailNotExistsException;
 import com.victorcarablut.code.exceptions.ErrorSaveDataToDatabaseException;
 import com.victorcarablut.code.exceptions.GenericException;
 import com.victorcarablut.code.exceptions.PostMaxLimitException;
+import com.victorcarablut.code.repository.CommentRepository;
 import com.victorcarablut.code.repository.LikeRepository;
 import com.victorcarablut.code.repository.PostRepository;
 import com.victorcarablut.code.repository.UserRepository;
@@ -37,6 +40,9 @@ public class PostService {
 
 	@Autowired
 	private LikeRepository likeRepository;
+
+	@Autowired
+	private CommentRepository commentRepository;
 
 	public boolean existsUserByEmail(String email) {
 		return userRepository.existsUserByEmail(email);
@@ -72,15 +78,13 @@ public class PostService {
 
 			List<Like> likes = likeRepository.findAllByPostId(post.getId());
 
-
 			post.setTotalLikes(likes.size());
-			
+
 			try {
 				postRepository.save(post);
 			} catch (Exception e) {
 				throw new ErrorSaveDataToDatabaseException();
 			}
-
 
 		}
 
@@ -112,7 +116,7 @@ public class PostService {
 
 			List<Like> likes = likeRepository.findAllByPostId(post.getId());
 			post.setTotalLikes(likes.size());
-			
+
 			try {
 				postRepository.save(post);
 			} catch (Exception e) {
@@ -123,7 +127,6 @@ public class PostService {
 
 		return posts;
 	}
-
 
 	public void createPost(Post post, MultipartFile image) {
 
@@ -324,7 +327,6 @@ public class PostService {
 
 		ArrayList<LikeDto> likesDto = new ArrayList<>();
 
-
 		for (Like like : likes) {
 
 			LikeDto likeDto = new LikeDto();
@@ -337,15 +339,15 @@ public class PostService {
 
 			likesDto.add(likeDto);
 
-
 		}
 		return likesDto;
 
 	}
 
 	public void postLike(Like like) {
-		
-		// only a owner of post can put Like to a post while is on "pending" status, other users only if it is active
+
+		// only a owner of post can put Like to a post while is on "pending" status,
+		// other users only if it is active
 
 		if (!likeRepository.existsPostByPostIdAndUserId(like.getPost().getId(), like.getUser().getId())) {
 
@@ -354,6 +356,78 @@ public class PostService {
 			Like findLike = likeRepository.findByPostIdAndUserId(like.getPost().getId(), like.getUser().getId());
 
 			likeRepository.deleteById(findLike.getId());
+		}
+
+	}
+
+	// ---------- Comments ----------
+
+	public ArrayList<CommentDto> findAllPostComments(Long postId) {
+
+		List<Comment> comments = commentRepository.findAllByPostId(postId);
+
+		ArrayList<CommentDto> commentsDto = new ArrayList<>();
+
+		for (Comment comment : comments) {
+
+			CommentDto commentDto = new CommentDto();
+			commentDto.setCommentId(comment.getId());
+			commentDto.setPostId(comment.getPost().getId());
+			commentDto.setUserId(comment.getUser().getId());
+			commentDto.setUserFullName(comment.getUser().getFullName());
+			commentDto.setUsername(comment.getUser().getUsername());
+			commentDto.setUserProfileImg(comment.getUser().getUserProfileImg());
+			commentDto.setCreatedDate(comment.getCreatedDate());
+			commentDto.setUpdatedDate(comment.getUpdatedDate());
+
+			commentDto.setComment(comment.getComment());
+
+			commentsDto.add(commentDto);
+
+		}
+		return commentsDto;
+
+	}
+
+	public void addComment(Comment comment) {
+
+		comment.setCreatedDate(LocalDateTime.now());
+
+		try {
+			commentRepository.save(comment);
+		} catch (Exception e) {
+			throw new ErrorSaveDataToDatabaseException();
+		}
+
+	}
+
+	public void updateComment(CommentDto commentDto) {
+
+		if (existsUserById(commentDto.getUserId()) && existsPostById(commentDto.getPostId())) {
+
+			Comment commentUpdate = commentRepository.findCommentById(commentDto.getCommentId());
+
+			commentUpdate.setComment(commentDto.getComment());
+			commentUpdate.setUpdatedDate(LocalDateTime.now());
+
+			try {
+				commentRepository.save(commentUpdate);
+			} catch (Exception e) {
+				throw new ErrorSaveDataToDatabaseException();
+			}
+
+		} else {
+			throw new GenericException();
+		}
+
+	}
+
+	public void deleteComment(CommentDto commentDto) {
+
+		if (existsUserById(commentDto.getUserId()) && existsPostById(commentDto.getPostId())) {
+			commentRepository.deleteById(commentDto.getCommentId());
+		} else {
+			throw new GenericException();
 		}
 
 	}
