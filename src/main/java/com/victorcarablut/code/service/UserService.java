@@ -5,6 +5,7 @@ import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,8 +28,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.victorcarablut.code.dto.LikeDto;
 import com.victorcarablut.code.dto.TokenDto;
 import com.victorcarablut.code.dto.UserDto;
+import com.victorcarablut.code.entity.post.Like;
 import com.victorcarablut.code.entity.user.Role;
 import com.victorcarablut.code.entity.user.User;
 import com.victorcarablut.code.entity.user.UserBlocked;
@@ -108,11 +111,35 @@ public class UserService {
 	public Optional<User> findUserDetails(String username) {
 		return userRepository.findByUsername(username);
 	}
+	
+	public ArrayList<UserDto> findAllUsers() {
 
-	// find all users
-	public List<User> findAllUsers() {
+		List<User> users = userRepository.findAll();
+
+		ArrayList<UserDto> usersDto = new ArrayList<>();
+		
+
+		for (User user : users) {
+			
+			if(user.isEnabled() && !user.getStatus().equals("blocked")) {
+				UserDto userDto = new UserDto();
+				userDto.setUserId(user.getId());
+				userDto.setFullName(user.getFullName());
+				userDto.setUsername(user.getUsername());
+				userDto.setUserProfileImg(user.getUserProfileImg());
+
+			    usersDto.add(userDto);
+			} 
+		}
+		return usersDto;
+	}
+
+	// find all users (for Admin Dashboard)
+	public List<User> findAllUsersAdmin() {
 		return userRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
 	}
+	
+
 
 	// find all users (blocked)
 	public List<UserBlocked> findAllBlockedUsers() {

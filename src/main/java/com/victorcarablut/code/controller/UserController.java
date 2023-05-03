@@ -146,10 +146,15 @@ public class UserController {
 	}
 	
 	@GetMapping("/all")
-	public List<User> getAllUsers(Authentication authentication) {
+	public List<UserDto> getAllUsers() {
+		return userService.findAllUsers();
+	}
+	
+	@GetMapping("/all/admin")
+	public List<User> getAllUsersAdmin(Authentication authentication) {
 		final String userRole = authentication.getAuthorities().toString();
 		if(userRole.contains("ADMIN")) {
-			return userService.findAllUsers();
+			return userService.findAllUsersAdmin();
 		} else {
 			return null;
 		}
