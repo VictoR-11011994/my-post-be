@@ -78,7 +78,7 @@ public class PostService {
 
 			List<Like> likes = likeRepository.findAllByPostId(post.getId());
 			post.setTotalLikes(likes.size());
-			
+
 			List<Comment> comments = commentRepository.findAllByPostId(post.getId());
 			post.setTotalComments(comments.size());
 
@@ -118,7 +118,7 @@ public class PostService {
 
 			List<Like> likes = likeRepository.findAllByPostId(post.getId());
 			post.setTotalLikes(likes.size());
-			
+
 			List<Comment> comments = commentRepository.findAllByPostId(post.getId());
 			post.setTotalComments(comments.size());
 
@@ -369,7 +369,7 @@ public class PostService {
 
 	public ArrayList<CommentDto> findAllPostComments(Long postId) {
 
-		List<Comment> comments = commentRepository.findAllByPostId(postId);
+		List<Comment> comments = commentRepository.findAllByOrderByPostIdDesc((postId));
 
 		ArrayList<CommentDto> commentsDto = new ArrayList<>();
 
@@ -396,12 +396,19 @@ public class PostService {
 
 	public void addComment(Comment comment) {
 
-		comment.setCreatedDate(LocalDateTime.now());
+		if (existsUserById(comment.getUser().getId()) && existsPostById(comment.getPost().getId())) {
 
-		try {
-			commentRepository.save(comment);
-		} catch (Exception e) {
-			throw new ErrorSaveDataToDatabaseException();
+			comment.setCreatedDate(LocalDateTime.now());
+
+			try {
+				commentRepository.save(comment);
+			} catch (Exception e) {
+				throw new ErrorSaveDataToDatabaseException();
+			}
+		}
+
+		else {
+			throw new GenericException();
 		}
 
 	}
