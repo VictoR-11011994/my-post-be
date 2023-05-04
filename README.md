@@ -35,6 +35,8 @@ Eclipse EE, Visual Studio Code, Workbench, Postman
 
 _____________
 
-> `Developed for demonstration purposes only.`
+`Developed for demonstration purposes only.`
+
+> License: MIT License
 
 [code.victorcarablut.com](https://code.victorcarablut.com)
