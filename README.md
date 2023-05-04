@@ -1,10 +1,13 @@
 # Technologies:
 
 ### `backend`
+```
 Java EE (v17)
  - Spring Boot
  - Spring Security
  - JWT (Token)
+```
+
 
 ### `frontend`
 React Js (v18)
