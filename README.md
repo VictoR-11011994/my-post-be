@@ -20,7 +20,7 @@ HTML, CSS, JS
 ### `IDE`
 Eclipse EE, Visual Studio Code, Workbench, Postman
 
-...better experience with: Microsoft Edge, Google Chrome
+...better experience with: `Microsoft Edge`, `Google Chrome`
 
 _____________
 
