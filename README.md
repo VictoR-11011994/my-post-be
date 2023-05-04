@@ -1,5 +1,4 @@
 # Technologies:
-______________
 
 ## backend
 Java EE (v17)
@@ -18,7 +17,6 @@ MySQL (Compatible also with phpMyAdmin)
 
 Bootstrap CSS (v5)
 HTML, CSS, JS
-______________
 
 ## IDE
 Eclipse EE, Visual Studio Code, Workbench, Postman
