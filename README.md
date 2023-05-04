@@ -1,6 +1,6 @@
 # Technologies:
 
-### This is `backend`  . . . go to [https://github.com/VictoR-11011994/my-post-fe)
+### This is `backend`  . . . go to [frontend](https://github.com/VictoR-11011994/my-post-fe)
 
 ```
 // backend
