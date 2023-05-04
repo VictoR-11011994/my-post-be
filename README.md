@@ -11,7 +11,7 @@ React Js (v18)
  - Axios
 
 ## database
-MySQL (Compatible also with phpMyAdmin)
+MySQL (compatible also with phpMyAdmin)
 
 ## other
 
