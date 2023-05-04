@@ -11,7 +11,7 @@ React Js (v18)
  - Axios
 
 ### `database`
-MySQL (compatible also with phpMyAdmin)
+MySQL
 
 ### `other`
 Bootstrap CSS (v5)\
@@ -20,7 +20,7 @@ Google Fonts\
 
 
 ### `IDE`
-Eclipse EE, Visual Studio Code, Workbench, Postman
+Eclipse EE, Visual Studio Code, Workbench / phpMyAdmin, Postman
 
 ...better experience with: `Microsoft Edge` `Google Chrome`
 
