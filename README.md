@@ -37,6 +37,6 @@ _____________
 
 `Developed for demonstration purposes only.`
 
-> License: MIT License
+> License: MIT License [code.victorcarablut.com](https://code.victorcarablut.com)
 
 [code.victorcarablut.com](https://code.victorcarablut.com)
