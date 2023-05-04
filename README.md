@@ -23,7 +23,6 @@ MySQL (compatible also with phpMyAdmin)
 // other
 Bootstrap CSS (v5)
 HTML, CSS, JS
-Google Fonts
 ```
 
 ```
