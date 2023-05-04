@@ -1,6 +1,6 @@
 # Technologies:
 
-### This is the backend Project
+### This is the backend `npm start` Project
 
 ```
 // backend
