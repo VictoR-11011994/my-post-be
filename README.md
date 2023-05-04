@@ -10,12 +10,10 @@ Java EE (v17)
  - JWT (Token)
 ```
 
-
-
 ```
 // database
 MySQL (v8)
-compatible also with phpMyAdmin
+...compatible also with phpMyAdmin
 ```
 
 
