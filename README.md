@@ -19,6 +19,8 @@ HTML, CSS, JS\
 Google Fonts
 
 ```jsx
+Bootstrap CSS (v5)\
+HTML, CSS, JS\
 Google Fonts
 ```
 
