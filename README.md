@@ -1,7 +1,6 @@
 # Technologies:
 
-### This is `backend` Project
-...go to [frontend](https://code.victorcarablut.com)
+### This is `backend` Project . . .go to [frontend](https://code.victorcarablut.com)
 
 ```
 // backend
