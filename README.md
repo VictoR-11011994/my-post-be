@@ -1,4 +1,5 @@
 # Technologies:
+______________
 
 ## backend
 Java EE (v17)
@@ -7,21 +8,20 @@ Java EE (v17)
  - JWT (Token)
 
 ## frontend
-React Js
+React Js (v18)
  - Axios
 
 ## database
 MySQL (Compatible also with phpMyAdmin)
 
-______________
+## other
 
-Bootstrap (v5)
+Bootstrap CSS (v5)
 HTML, CSS, JS
-
+______________
 
 ## IDE
 Eclipse EE, Visual Studio Code, Workbench, Postman
-
-______________________________________________
+______________
 
 > Developed for demonstration purposes only.
