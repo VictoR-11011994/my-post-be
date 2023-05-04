@@ -14,7 +14,7 @@ React Js (v18)
 MySQL (compatible also with phpMyAdmin)
 
 ### `other`
-Bootstrap CSS (v5)
+Bootstrap CSS (v5)\
 HTML, CSS, JS
 
 ### `IDE`
