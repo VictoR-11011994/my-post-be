@@ -1,41 +1,40 @@
 # Technologies:
 
-### `backend`
 ```
-`backend`
+// backend
 Java EE (v17)
  - Spring Boot
  - Spring Security
  - JWT (Token)
 ```
 
-### `frontend`
 ```
+// frontend
 React Js (v18)
  - Axios
 ```
 
-### `database`
 ```
+//database
 MySQL (compatible also with phpMyAdmin)
 ```
 
-### `other`
 ```
+// other
 Bootstrap CSS (v5)
 HTML, CSS, JS
 Google Fonts
 ```
 
-### `IDE`
 ```
+// IDE
 Eclipse EE, Visual Studio Code, Workbench, Postman
-```
 
-...better experience with: `Microsoft Edge` `Google Chrome`
+...better experience with: Microsoft Edge, Google Chrome
+```
 
 _____________
 
-> Developed for demonstration purposes only.
+> `Developed for demonstration purposes only.`
 
 [code.victorcarablut.com](https://code.victorcarablut.com)
