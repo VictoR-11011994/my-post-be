@@ -13,8 +13,9 @@ Java EE (v17)
 
 
 ```
-//database
-MySQL (compatible also with phpMyAdmin)
+// database
+MySQL (v8)
+compatible also with phpMyAdmin
 ```
 
 
