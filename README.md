@@ -6,19 +6,18 @@ Java EE (v17)
  - Spring Security
  - JWT (Token)
 
-## frontend
+### `frontend`
 React Js (v18)
  - Axios
 
-## database
+### `database`
 MySQL (compatible also with phpMyAdmin)
 
-## other
-
+### `other`
 Bootstrap CSS (v5)
 HTML, CSS, JS
 
-## IDE
+### `IDE`
 Eclipse EE, Visual Studio Code, Workbench, Postman
 
 ...better experience with: Microsoft Edge, Google Chrome
