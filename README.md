@@ -23,7 +23,8 @@ Eclipse EE, Visual Studio Code, Workbench, Postman
 
 ...better experience with: Microsoft Edge, Google Chrome
 
-> Developed for demonstration purposes only.
 _____________
+
+> Developed for demonstration purposes only.
 
 https://code.victorcarablut.com
