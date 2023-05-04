@@ -22,6 +22,6 @@ HTML, CSS, JS
 Eclipse EE, Visual Studio Code, Workbench, Postman
 ______________
 
->> better experience with: Microsoft Edge, Google Chrome
+< better experience with: Microsoft Edge, Google Chrome
 
 > Developed for demonstration purposes only.
