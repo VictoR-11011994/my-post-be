@@ -1,6 +1,6 @@
 # Technologies:
 
-## backend
+### `backend`
 Java EE (v17)
  - Spring Boot
  - Spring Security
