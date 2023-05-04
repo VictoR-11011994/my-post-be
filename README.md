@@ -22,6 +22,7 @@ Google Fonts
 Bootstrap CSS (v5)\
 HTML, CSS, JS\
 Google Fonts
+ - JWT (Token)
 ```
 
 
