@@ -18,6 +18,10 @@ Bootstrap CSS (v5)\
 HTML, CSS, JS\
 Google Fonts
 
+```jsx
+Google Fonts
+```
+
 
 ### `IDE`
 Eclipse EE, Visual Studio Code, Workbench, Postman
