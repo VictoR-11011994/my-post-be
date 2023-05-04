@@ -33,7 +33,7 @@ Eclipse EE, Visual Studio Code, Workbench, Postman
 ...better experience with: Microsoft Edge, Google Chrome
 ```
 
-_____________
+___
 
 `Developed for demonstration purposes only.`
 
